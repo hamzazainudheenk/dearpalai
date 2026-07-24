@@ -9,7 +9,7 @@
 
 export const MessageTemplates = {
   /** Reply sent after receiving a text message */
-  TEXT_RECEIVED: 'Message received successfully.',
+  TEXT_RECEIVED: "Hello! 👋 I'm DearPal.\n\nHow are you feeling today?",
 
   /** Reply sent after receiving a voice message */
   VOICE_RECEIVED: 'Voice message received successfully.',
