@@ -24,9 +24,9 @@ export class SarvamSpeechService implements ISpeechService {
 
     return {
       text: response.transcript,
-      confidence: response.confidence ?? 1.0,
+      confidence: 1.0,
       language: response.language_code ?? "unknown",
-      durationSeconds: response.duration ?? 0,
+      durationSeconds: 0,
     };
   }
 }
