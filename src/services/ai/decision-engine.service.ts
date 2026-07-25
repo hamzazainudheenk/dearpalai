@@ -1,11 +1,3 @@
-/**
- * Decision Engine Service (Mock Implementation)
- *
- * Phase 1: Returns static mock decisions.
- * Phase 2: Will synthesize outputs from RAG, risk assessment,
- *          and conversation context to generate the final response.
- */
-
 import { IDecisionEngine } from './interfaces';
 import {
   DecisionResult,
@@ -13,15 +5,17 @@ import {
   RagResult,
   RiskAssessmentResult,
 } from '@app-types/index';
-import { MessageTemplates } from '@config/messages';
+import { SarvamChatService } from './sarvam-chat.service';
 import { logger } from '@utils/logger';
 
 export class DecisionEngineService implements IDecisionEngine {
+  constructor(private readonly sarvamChatService: SarvamChatService) {}
+
   /**
-   * Makes a decision on how to respond to a message.
+   * Makes a decision on how to respond to a message by invoking SarvamChatService.
    *
-   * @param input - Aggregated pipeline outputs
-   * @returns Mock decision with static reply
+   * @param input - Aggregated pipeline outputs (transcript or text message)
+   * @returns Decision result containing Sarvam AI generated reply
    */
   async decide(input: {
     message: string;
@@ -29,24 +23,29 @@ export class DecisionEngineService implements IDecisionEngine {
     ragResult?: RagResult;
     riskAssessment?: RiskAssessmentResult;
   }): Promise<DecisionResult> {
-    logger.info('[Mock] Decision engine called', {
-      messageLength: input.message.length,
+    const userText = input.transcription?.text || input.message;
+
+    logger.info('DecisionEngine processing message with SarvamChatService', {
+      userTextLength: userText.length,
       hasTranscription: !!input.transcription,
-      hasRagResult: !!input.ragResult,
-      hasRiskAssessment: !!input.riskAssessment,
     });
 
-    // Phase 2: Replace with actual decision logic
-    // - Combine RAG results with risk assessment
-    // - Apply guardrails and safety checks
-    // - Generate contextual response with LLM
+    try {
+      const aiReply = await this.sarvamChatService.generateResponse(userText);
 
-    return {
-      reply: MessageTemplates.TEXT_RECEIVED,
-      confidence: 0.0,
-      source: 'mock',
-      shouldEscalate: false,
-      reasoning: 'Mock decision — AI pipeline not yet active',
-    };
+      return {
+        reply: aiReply,
+        confidence: 1.0,
+        source: 'ai',
+        shouldEscalate: false,
+        reasoning: 'Generated response using Sarvam Chat completion API (sarvam-30b)',
+      };
+    } catch (error) {
+      logger.error('DecisionEngine failed to get response from SarvamChatService', {
+        error: (error as Error).message,
+      });
+
+      throw error;
+    }
   }
 }

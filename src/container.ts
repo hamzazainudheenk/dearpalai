@@ -31,6 +31,7 @@ import { EmbeddingService } from '@services/ai/embedding.service';
 import { RagService } from '@services/ai/rag.service';
 import { RiskAssessmentService } from '@services/ai/risk-assessment.service';
 import { DecisionEngineService } from '@services/ai/decision-engine.service';
+import { SarvamChatService } from '@services/ai/sarvam-chat.service';
 import { AIPipelineService } from '@services/ai/ai-pipeline.service';
 
 // Processing
@@ -58,6 +59,7 @@ class Container {
   private _embeddingService?: IEmbeddingService;
   private _ragService?: IRagService;
   private _riskAssessmentService?: IRiskAssessmentService;
+  private _sarvamChatService?: SarvamChatService;
   private _decisionEngine?: IDecisionEngine;
   private _aiPipeline?: IAIPipeline;
   private _conversationStore?: IConversationStore;
@@ -109,10 +111,18 @@ class Container {
     return this._riskAssessmentService;
   }
 
-  /** Decision Engine: Swap for LLM-based implementation in Phase 2 */
+  /** Sarvam Chat Service */
+  get sarvamChatService(): SarvamChatService {
+    if (!this._sarvamChatService) {
+      this._sarvamChatService = new SarvamChatService();
+    }
+    return this._sarvamChatService;
+  }
+
+  /** Decision Engine: Swapped for Sarvam AI LLM-based implementation */
   get decisionEngine(): IDecisionEngine {
     if (!this._decisionEngine) {
-      this._decisionEngine = new DecisionEngineService();
+      this._decisionEngine = new DecisionEngineService(this.sarvamChatService);
     }
     return this._decisionEngine;
   }
