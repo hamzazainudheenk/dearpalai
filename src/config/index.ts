@@ -7,9 +7,15 @@
  */
 
 import dotenv from 'dotenv';
+import fs from 'fs';
+import path from 'path';
 
-// Load environment variables from .env file
-dotenv.config();
+// Load environment variables from .env.local or .env file
+if (fs.existsSync(path.resolve(process.cwd(), '.env.local'))) {
+  dotenv.config({ path: '.env.local' });
+} else {
+  dotenv.config();
+}
 
 /**
  * Validates that a required environment variable is set.
@@ -63,6 +69,13 @@ export const config = {
   rateLimit: {
     windowMs: parseInt(optionalEnv('RATE_LIMIT_WINDOW_MS', '900000'), 10), // 15 minutes
     maxRequests: parseInt(optionalEnv('RATE_LIMIT_MAX', '100'), 10),
+  },
+
+  /** Supabase configuration */
+  supabase: {
+    url: optionalEnv('SUPABASE_URL', ''),
+    serviceRoleKey: optionalEnv('SUPABASE_SERVICE_ROLE_KEY', ''),
+    anonKey: optionalEnv('SUPABASE_ANON_KEY', ''),
   },
 
   /** File paths */

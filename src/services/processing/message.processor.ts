@@ -2,10 +2,10 @@
  * Message Processor (Orchestrator)
  *
  * Routes incoming messages to the appropriate processor based on type.
- * Stores conversation metadata before and after processing.
+ * Stores conversation metadata before and after processing, and syncs to Supabase.
  *
  * Flow:
- *   Incoming webhook → parse → store metadata → route to processor → send reply → update metadata
+ *   Incoming webhook → parse → store metadata → route to processor → send reply → update metadata & Supabase
  */
 
 import {
@@ -20,6 +20,7 @@ import { WhatsAppService } from '@services/whatsapp/whatsapp.service';
 import { MessageTemplates } from '@config/messages';
 import { generateConversationId } from '@utils/helpers';
 import { logger } from '@utils/logger';
+import { supabaseAdmin } from '@config/supabase';
 
 export class MessageProcessor {
   constructor(
@@ -30,16 +31,59 @@ export class MessageProcessor {
   ) {}
 
   /**
+   * Syncs a message pair (inbound user message and outbound AI reply) to Supabase conversations table.
+   */
+  private async syncToSupabase(
+    message: ParsedMessage,
+    result: ProcessingResult
+  ): Promise<void> {
+    try {
+      const cleanPhone = message.phoneNumber.replace(/[^0-9]/g, '');
+
+      // Find matching patient by phone_number if available
+      const { data: patient } = await supabaseAdmin
+        .from('patients')
+        .select('id')
+        .eq('phone_number', cleanPhone)
+        .maybeSingle();
+
+      const patientId = patient?.id || null;
+
+      // 1. Insert inbound user message
+      await supabaseAdmin.from('conversations').insert({
+        patient_id: patientId,
+        phone_number: cleanPhone,
+        message_id: message.messageId,
+        direction: 'inbound',
+        message_type: message.messageType === MessageType.AUDIO ? 'audio' : 'text',
+        content: message.textContent || '',
+        transcript: result.transcription?.text || '',
+        audio_file_path: result.audioFilePath || '',
+        timestamp: new Date(parseInt(message.timestamp, 10) * 1000).toISOString(),
+      });
+
+      // 2. Insert outbound AI reply if sent
+      if (result.reply) {
+        await supabaseAdmin.from('conversations').insert({
+          patient_id: patientId,
+          phone_number: cleanPhone,
+          direction: 'outbound',
+          message_type: 'text',
+          content: result.reply,
+          timestamp: new Date().toISOString(),
+        });
+      }
+
+      logger.info('Synced conversation to Supabase', { cleanPhone, patientId });
+    } catch (err) {
+      logger.warn('Failed to sync conversation to Supabase', {
+        error: (err as Error).message,
+      });
+    }
+  }
+
+  /**
    * Processes an incoming message end-to-end.
-   *
-   * 1. Generates a conversation ID
-   * 2. Stores initial metadata
-   * 3. Routes to the correct processor
-   * 4. Sends the reply via WhatsApp
-   * 5. Updates the conversation record with the result
-   *
-   * @param message - Parsed incoming message
-   * @returns Processing result
    */
   async processMessage(message: ParsedMessage): Promise<ProcessingResult> {
     const conversationId = generateConversationId();
@@ -124,6 +168,9 @@ export class MessageProcessor {
       processingResult: result,
     };
     await this.conversationStore.store(updatedRecord);
+
+    // Step 5: Sync to Supabase for Frontend visibility
+    await this.syncToSupabase(message, result);
 
     logger.info('Message processing complete', {
       conversationId,

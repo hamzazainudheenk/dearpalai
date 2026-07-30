@@ -43,6 +43,8 @@ export interface ProcessingResult {
   metadata?: Record<string, unknown>;
   /** Path to downloaded audio file, if applicable */
   audioFilePath?: string;
+  /** Transcription result if voice message */
+  transcription?: TranscriptionResult;
   /** Error details if processing failed */
   error?: string;
 }

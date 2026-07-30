@@ -1,0 +1,1 @@
+{"version":3,"file":"sarvam-speech.service.d.ts","sourceRoot":"","sources":["../../../src/services/ai/sarvam-speech.service.ts"],"names":[],"mappings":"AAEA,OAAO,EAAE,cAAc,EAAE,MAAM,cAAc,CAAC;AAC9C,OAAO,EAAE,mBAAmB,EAAE,MAAM,kBAAkB,CAAC;AAGvD,qBAAa,mBAAoB,YAAW,cAAc;IACxD,OAAO,CAAC,MAAM,CAEX;IAEG,UAAU,CAAC,SAAS,EAAE,MAAM,GAAG,OAAO,CAAC,mBAAmB,CAAC;CAoBlE"}

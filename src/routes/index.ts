@@ -6,6 +6,10 @@
 
 import { Router, Request, Response } from 'express';
 import webhookRoutes from './webhook.routes';
+import patientRoutes from './patient.routes';
+import sessionRoutes from './session.routes';
+import conversationRoutes from './conversation.routes';
+import dashboardRoutes from './dashboard.routes';
 
 const router = Router();
 
@@ -22,7 +26,13 @@ router.get('/health', (_req: Request, res: Response) => {
   });
 });
 
-/** Mount webhook routes at /webhook */
+/** Mount WhatsApp webhook routes at /webhook */
 router.use('/webhook', webhookRoutes);
+
+/** Mount REST API routes for DearPal Frontend */
+router.use('/api/patients', patientRoutes);
+router.use('/api/patients/:id/sessions', sessionRoutes);
+router.use('/api/patients/:id/conversations', conversationRoutes);
+router.use('/api/dashboard', dashboardRoutes);
 
 export default router;
