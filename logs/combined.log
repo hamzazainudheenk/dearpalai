@@ -62,3 +62,12 @@
 {"level":"info","message":"Health check: http://localhost:3000/health","service":"dearpal-whatsapp","timestamp":"2026-07-30 06:37:31.020"}
 {"level":"info","message":"Webhook URL:  http://localhost:3000/webhook","service":"dearpal-whatsapp","timestamp":"2026-07-30 06:37:31.021"}
 {"level":"info","message":"SIGINT received. Starting graceful shutdown...","service":"dearpal-whatsapp","timestamp":"2026-07-30 06:37:46.185"}
+{"apiVersion":"v23.0","environment":"development","level":"info","message":"🚀 DearPal WhatsApp Service started","port":3000,"service":"dearpal-whatsapp","timestamp":"2026-07-31 07:06:05.977"}
+{"level":"info","message":"Health check: http://localhost:3000/health","service":"dearpal-whatsapp","timestamp":"2026-07-31 07:06:05.984"}
+{"level":"info","message":"Webhook URL:  http://localhost:3000/webhook","service":"dearpal-whatsapp","timestamp":"2026-07-31 07:06:05.984"}
+{"contentLength":139,"ip":"::1","level":"warn","message":"Request completed with client error","method":"GET","responseTimeMs":6,"service":"dearpal-whatsapp","statusCode":404,"timestamp":"2026-07-31 07:06:06.096","url":"/","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36"}
+{"contentLength":139,"ip":"::1","level":"warn","message":"Request completed with client error","method":"GET","responseTimeMs":2,"service":"dearpal-whatsapp","statusCode":404,"timestamp":"2026-07-31 07:07:48.686","url":"/","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36"}
+{"apiVersion":"v23.0","environment":"development","level":"info","message":"🚀 DearPal WhatsApp Service started","port":3000,"service":"dearpal-whatsapp","timestamp":"2026-07-31 07:23:34.877"}
+{"level":"info","message":"Health check: http://localhost:3000/health","service":"dearpal-whatsapp","timestamp":"2026-07-31 07:23:34.883"}
+{"level":"info","message":"Webhook URL:  http://localhost:3000/webhook","service":"dearpal-whatsapp","timestamp":"2026-07-31 07:23:34.884"}
+{"level":"info","message":"SIGINT received. Starting graceful shutdown...","service":"dearpal-whatsapp","timestamp":"2026-07-31 07:24:01.411"}

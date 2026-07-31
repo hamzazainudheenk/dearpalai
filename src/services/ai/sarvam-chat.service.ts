@@ -32,7 +32,7 @@ Rules:
     });
 
     const response = await this.client.chat.completions({
-      model: 'sarvam-30b',
+      model: 'sarvam-105b',
       temperature: 0.7,
       messages: [
         {
