@@ -56,16 +56,18 @@ export class PatientController {
       // Automatically send WhatsApp welcome message if requested or by default
       if (sendWelcome !== false) {
         try {
-          const welcomeText = `Hello ${fullName}! 👋 ${MessageTemplates.TEXT_RECEIVED}`;
-          await container.whatsAppService.sendTextMessage(cleanPhone, welcomeText);
+         await container.whatsAppService.sendTemplateMessage(
+  cleanPhone,
+  fullName,
+);
           
           // Log outbound welcome message into conversations table
           await supabaseAdmin.from('conversations').insert({
             patient_id: patient.id,
             phone_number: cleanPhone,
             direction: 'outbound',
-            message_type: 'text',
-            content: welcomeText,
+            message_type: 'template',
+            content: `Welcome template sent to ${fullName}`,
             timestamp: new Date().toISOString(),
           });
 

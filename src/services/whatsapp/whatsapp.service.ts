@@ -116,6 +116,65 @@ export class WhatsAppService {
       }
     }
   }
+  /**
+ * Sends an approved WhatsApp template message.
+ *
+ * @param phoneNumber - Recipient phone number
+ * @param patientName - Patient name for the template variable
+ */
+async sendTemplateMessage(
+  phoneNumber: string,
+  patientName: string,
+): Promise<SendMessageResponse> {
+  const endpoint = `/${config.whatsapp.phoneNumberId}/messages`;
+
+  const payload = {
+    messaging_product: 'whatsapp',
+    to: phoneNumber,
+    type: 'template',
+    template: {
+      name: 'welcome_patient',
+      language: {
+        code: 'en',
+      },
+      components: [
+        {
+          type: 'body',
+          parameters: [
+            {
+              type: 'text',
+              text: patientName,
+            },
+          ],
+        },
+      ],
+    },
+  };
+
+  try {
+    const response = await this.client.post<SendMessageResponse>(
+      endpoint,
+      payload,
+    );
+
+    logger.info('Template message sent successfully', {
+      phoneNumber,
+      patientName,
+      messageId: response.data.messages?.[0]?.id,
+    });
+
+    return response.data;
+  } catch (error) {
+    logger.error('Failed to send template message', {
+      phoneNumber,
+      patientName,
+      error: (error as AxiosError).message,
+      response: (error as AxiosError).response?.data,
+    });
+
+    throw error;
+  }
+}
 
   /**
    * Retrieves the temporary download URL for a media file.
