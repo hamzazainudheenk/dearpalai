@@ -135,20 +135,20 @@ export class WhatsAppService {
       template: {
         name: 'welcome_patient',
         language: {
-          code: 'en_US',
+          code: 'en',
         },
         components: [
           {
-            type: 'body',
-            parameters: [
-              {
-                type: 'text',
-                text: patientName,
-              },
-            ],
-          },
-        ],
-      },
+      type: "body",
+      parameters: [
+        {
+          type: "text",
+          text: patientName,
+        },
+      ],
+    },
+  ],
+}
     };
 
     try {
