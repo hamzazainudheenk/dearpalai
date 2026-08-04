@@ -138,16 +138,17 @@ export class WhatsAppService {
           code: 'en',
         },
         components: [
-          {
-      type: "body",
-      parameters: [
-        {
-          type: "text",
-          text: patientName,
-        },
-      ],
-    },
-  ],
+  {
+    type: "body",
+    parameters: [
+      {
+        type: "text",
+        parameter_name: "patient_name",
+        text: patientName,
+      },
+    ],
+  },
+],
 }
     };
 
