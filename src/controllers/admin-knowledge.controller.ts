@@ -2,6 +2,7 @@ import { Response } from 'express';
 import { AuthenticatedRequest } from '@middleware/auth.middleware';
 import { KnowledgeService } from '@services/knowledge/knowledge.service';
 import { VectorSearchService } from '@services/knowledge/vector-search.service';
+import { RAGService } from '@services/knowledge/rag.service';
 import { logger } from '@utils/logger';
 
 const ALLOWED_MIME_TYPES = [
@@ -16,6 +17,7 @@ const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25 MB
 export class AdminKnowledgeController {
   private knowledgeService = new KnowledgeService();
   private vectorSearchService = new VectorSearchService();
+  private ragService = new RAGService();
 
   /**
    * POST /api/admin/knowledge/documents
@@ -164,7 +166,7 @@ export class AdminKnowledgeController {
 
   /**
    * POST /api/admin/knowledge/search
-   * Development & testing endpoint for RAG vector similarity retrieval.
+   * Vector similarity search dev/test endpoint.
    */
   async searchKnowledge(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
@@ -190,6 +192,37 @@ export class AdminKnowledgeController {
     } catch (err) {
       logger.error('Error in searchKnowledge controller', { error: (err as Error).message });
       res.status(500).json({ status: 'error', message: (err as Error).message || 'Vector similarity search failed' });
+    }
+  }
+
+  /**
+   * POST /api/admin/knowledge/ask
+   * RAG generation dev/test endpoint: Vector retrieval + RAGContextBuilder + Sarvam 105B generation.
+   */
+  async askKnowledge(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const { query, topK, threshold } = req.body;
+
+      if (!query || typeof query !== 'string' || !query.trim()) {
+        res.status(400).json({ status: 'error', message: 'Query string is required' });
+        return;
+      }
+
+      const ragResponse = await this.ragService.generateAnswer(query, {
+        topK: topK ? parseInt(String(topK), 10) : undefined,
+        threshold: threshold ? parseFloat(String(threshold)) : undefined,
+      });
+
+      res.status(200).json({
+        status: 'success',
+        data: {
+          answer: ragResponse.answer,
+          sources: ragResponse.sources,
+        },
+      });
+    } catch (err) {
+      logger.error('Error in askKnowledge controller', { error: (err as Error).message });
+      res.status(500).json({ status: 'error', message: (err as Error).message || 'RAG generation failed' });
     }
   }
 }

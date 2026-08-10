@@ -53,6 +53,35 @@ Rules:
         }
         return content;
     }
+    /**
+     * Generates a grounded completion using Sarvam 105B with a custom system prompt and user message context.
+     */
+    async generateCustomCompletion(systemPrompt, userMessage, temperature = 0.3) {
+        logger_1.logger.info('Calling Sarvam 105B Custom Completion', {
+            userMessageLength: userMessage.length,
+            temperature,
+        });
+        const response = await this.client.chat.completions({
+            model: 'sarvam-105b',
+            temperature,
+            messages: [
+                {
+                    role: 'system',
+                    content: systemPrompt,
+                },
+                {
+                    role: 'user',
+                    content: userMessage,
+                },
+            ],
+        });
+        logger_1.logger.info('Sarvam 105B Custom Completion complete');
+        const content = response.choices?.[0]?.message?.content;
+        if (!content) {
+            throw new Error('Empty response content received from Sarvam 105B API');
+        }
+        return content;
+    }
 }
 exports.SarvamChatService = SarvamChatService;
 //# sourceMappingURL=sarvam-chat.service.js.map
