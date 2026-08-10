@@ -14,6 +14,7 @@ const patient_routes_1 = __importDefault(require("./patient.routes"));
 const session_routes_1 = __importDefault(require("./session.routes"));
 const conversation_routes_1 = __importDefault(require("./conversation.routes"));
 const dashboard_routes_1 = __importDefault(require("./dashboard.routes"));
+const admin_knowledge_routes_1 = __importDefault(require("./admin-knowledge.routes"));
 const router = (0, express_1.Router)();
 /**
  * GET /health
@@ -34,5 +35,7 @@ router.use('/api/patients', patient_routes_1.default);
 router.use('/api/patients/:id/sessions', session_routes_1.default);
 router.use('/api/patients/:id/conversations', conversation_routes_1.default);
 router.use('/api/dashboard', dashboard_routes_1.default);
+/** Mount Admin Knowledge Base API routes */
+router.use('/api/admin/knowledge', admin_knowledge_routes_1.default);
 exports.default = router;
 //# sourceMappingURL=index.js.map

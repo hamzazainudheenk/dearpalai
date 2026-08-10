@@ -32,6 +32,13 @@ export declare class WhatsAppService {
      */
     sendTextMessage(phoneNumber: string, message: string): Promise<SendMessageResponse>;
     /**
+   * Sends an approved WhatsApp template message.
+   *
+   * @param phoneNumber - Recipient phone number
+   * @param patientName - Patient name for the template variable
+   */
+    sendTemplateMessage(phoneNumber: string, patientName: string): Promise<SendMessageResponse>;
+    /**
      * Retrieves the temporary download URL for a media file.
      *
      * @param mediaId - WhatsApp media ID

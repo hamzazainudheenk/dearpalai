@@ -3,7 +3,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.PatientController = void 0;
 const supabase_1 = require("../config/supabase");
 const container_1 = require("../container");
-const messages_1 = require("../config/messages");
 const logger_1 = require("../utils/logger");
 class PatientController {
     /**
@@ -49,15 +48,14 @@ class PatientController {
             // Automatically send WhatsApp welcome message if requested or by default
             if (sendWelcome !== false) {
                 try {
-                    const welcomeText = `Hello ${fullName}! 👋 ${messages_1.MessageTemplates.TEXT_RECEIVED}`;
-                    await container_1.container.whatsAppService.sendTextMessage(cleanPhone, welcomeText);
+                    await container_1.container.whatsAppService.sendTemplateMessage(cleanPhone, fullName);
                     // Log outbound welcome message into conversations table
                     await supabase_1.supabaseAdmin.from('conversations').insert({
                         patient_id: patient.id,
                         phone_number: cleanPhone,
                         direction: 'outbound',
-                        message_type: 'text',
-                        content: welcomeText,
+                        message_type: 'template',
+                        content: `Welcome template sent to ${fullName}`,
                         timestamp: new Date().toISOString(),
                     });
                     logger_1.logger.info('WhatsApp welcome message sent to new patient', { patientId: patient.id });
