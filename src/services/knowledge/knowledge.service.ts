@@ -1,23 +1,12 @@
 import { v4 as uuidv4 } from 'uuid';
 import { supabaseAdmin } from '@config/supabase';
-import { TextExtractorService } from './text-extractor.service';
-import { ChunkerService } from './chunker.service';
+import { KnowledgeRepository, KnowledgeDocumentRecord } from './knowledge.repository';
+import { DocumentProcessingService } from './document-processing.service';
 import { logger } from '@utils/logger';
 
-export interface KnowledgeDocument {
-  id: string;
-  title: string;
-  description: string;
-  category: string;
-  file_name: string;
-  storage_path: string;
-  mime_type: string;
-  file_size: number;
-  status: 'processing' | 'completed' | 'failed';
-  total_chunks: number;
-  created_at: string;
-  updated_at: string;
+export interface KnowledgeDocument extends KnowledgeDocumentRecord {
   approved_doctors_count?: number;
+  chunks?: any[];
 }
 
 export interface DocumentQueryParams {
@@ -29,8 +18,8 @@ export interface DocumentQueryParams {
 }
 
 export class KnowledgeService {
-  private textExtractor = new TextExtractorService();
-  private chunker = new ChunkerService();
+  private repository = new KnowledgeRepository();
+  private processingService = new DocumentProcessingService();
   private readonly bucketName = 'knowledge-base';
 
   /**
@@ -43,9 +32,7 @@ export class KnowledgeService {
 
       if (!exists) {
         logger.info(`Creating Supabase storage bucket '${this.bucketName}'...`);
-        await supabaseAdmin.storage.createBucket(this.bucketName, {
-          public: false,
-        });
+        await supabaseAdmin.storage.createBucket(this.bucketName, { public: false });
       }
     } catch (err) {
       logger.warn('Error checking/creating storage bucket', { error: (err as Error).message });
@@ -87,112 +74,35 @@ export class KnowledgeService {
       throw new Error(`Storage upload failed: ${uploadError.message}`);
     }
 
-    // 2. Insert record into knowledge_documents
-    const { data: document, error: dbError } = await supabaseAdmin
-      .from('knowledge_documents')
-      .insert({
-        id: documentId,
-        title: title.trim(),
-        description: description?.trim() || '',
-        category: category.trim(),
-        file_name: file.originalname,
-        storage_path: storagePath,
-        mime_type: file.mimetype,
-        file_size: file.size,
-        status: 'processing',
-        total_chunks: 0,
-      })
-      .select()
-      .single();
-
-    if (dbError || !document) {
-      logger.error('Failed to insert knowledge document into database', { error: dbError?.message });
-      // Attempt cleanup
-      await supabaseAdmin.storage.from(this.bucketName).remove([storagePath]);
-      throw new Error(`Database insert failed: ${dbError?.message}`);
-    }
-
-    // 3. Fire-and-forget processing pipeline asynchronously
-    setImmediate(() => {
-      this.processDocument(documentId, file.buffer, file.mimetype, file.originalname).catch((err) => {
-        logger.error('Async processDocument error', { documentId, error: (err as Error).message });
-      });
+    // 2. Insert record into knowledge_documents via KnowledgeRepository
+    const document = await this.repository.createDocument({
+      id: documentId,
+      title: title.trim(),
+      description: description?.trim() || '',
+      category: category.trim(),
+      file_name: file.originalname,
+      storage_path: storagePath,
+      mime_type: file.mimetype,
+      file_size: file.size,
+      status: 'processing',
+      total_chunks: 0,
     });
 
-    return document as KnowledgeDocument;
+    // 3. Fire-and-forget background processing via DocumentProcessingService
+    setImmediate(() => {
+      this.processingService
+        .process(documentId, storagePath, file.mimetype, file.originalname, file.buffer)
+        .catch((err) => {
+          logger.error('Async process error in uploadDocument', { documentId, error: (err as Error).message });
+        });
+    });
+
+    return document;
   }
 
   /**
-   * Processes a document: extracts text, chunks it, and stores chunks in DB.
-   */
-  async processDocument(
-    documentId: string,
-    buffer: Buffer,
-    mimeType: string,
-    fileName: string
-  ): Promise<void> {
-    logger.info('Processing knowledge document', { documentId, fileName });
-
-    try {
-      // Set status to processing
-      await supabaseAdmin
-        .from('knowledge_documents')
-        .update({ status: 'processing', updated_at: new Date().toISOString() })
-        .eq('id', documentId);
-
-      // Extract text
-      const extractedText = await this.textExtractor.extractText(buffer, mimeType, fileName);
-
-      // Create chunks
-      const chunks = this.chunker.chunkText(extractedText);
-
-      // Delete existing chunks if reprocessing
-      await supabaseAdmin.from('knowledge_chunks').delete().eq('document_id', documentId);
-
-      // Insert new chunks if any
-      if (chunks.length > 0) {
-        const chunkRecords = chunks.map((c) => ({
-          document_id: documentId,
-          chunk_index: c.chunkIndex,
-          content: c.content,
-          token_count: c.tokenCount,
-          metadata: { fileName, documentId },
-        }));
-
-        const { error: chunkError } = await supabaseAdmin.from('knowledge_chunks').insert(chunkRecords);
-
-        if (chunkError) {
-          throw new Error(`Failed to insert chunks: ${chunkError.message}`);
-        }
-      }
-
-      // Mark completed
-      await supabaseAdmin
-        .from('knowledge_documents')
-        .update({
-          status: 'completed',
-          total_chunks: chunks.length,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', documentId);
-
-      logger.info('Document processing completed successfully', { documentId, chunksCount: chunks.length });
-    } catch (err) {
-      logger.error('Document processing failed', { documentId, error: (err as Error).message });
-
-      await supabaseAdmin
-        .from('knowledge_documents')
-        .update({
-          status: 'failed',
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', documentId);
-    }
-  }
-
-  /**
-   * Gets paginated knowledge documents matching optional search/category/status filters,
-   * plus overall summary stats for dashboard cards.
+   * Gets paginated knowledge documents matching search/category/status filters,
+   * plus overall summary stats.
    */
   async getDocuments(params: DocumentQueryParams) {
     const search = params.search?.trim() || '';
@@ -202,7 +112,6 @@ export class KnowledgeService {
     const limit = Math.max(1, Math.min(100, params.limit || 10));
     const offset = (page - 1) * limit;
 
-    // Base query
     let query = supabaseAdmin
       .from('knowledge_documents')
       .select('*', { count: 'exact' })
@@ -232,13 +141,11 @@ export class KnowledgeService {
     const approvalCountsMap: Record<string, number> = {};
 
     if (docIds.length > 0) {
-      const { data: approvals } = await supabaseAdmin
-        .from('doctor_knowledge_approvals')
-        .select('document_id');
-
-      (approvals || []).forEach((a) => {
-        approvalCountsMap[a.document_id] = (approvalCountsMap[a.document_id] || 0) + 1;
-      });
+      await Promise.all(
+        docIds.map(async (docId) => {
+          approvalCountsMap[docId] = await this.repository.getApprovalCount(docId);
+        })
+      );
     }
 
     const formattedDocs = (documents || []).map((d) => ({
@@ -249,8 +156,9 @@ export class KnowledgeService {
     // Aggregate summary stats for header cards
     const { data: allDocs } = await supabaseAdmin.from('knowledge_documents').select('status, total_chunks');
     const { count: totalApprovals } = await supabaseAdmin
-      .from('doctor_knowledge_approvals')
-      .select('*', { count: 'exact', head: true });
+      .from('doctor_knowledge')
+      .select('*', { count: 'exact', head: true })
+      .eq('approved', true);
 
     let totalDocsCount = 0;
     let processingCount = 0;
@@ -289,103 +197,55 @@ export class KnowledgeService {
    * Retrieves single document by ID with chunk preview & approval count.
    */
   async getDocumentById(id: string) {
-    const { data: document, error } = await supabaseAdmin
-      .from('knowledge_documents')
-      .select('*')
-      .eq('id', id)
-      .single();
-
-    if (error || !document) {
+    const document = await this.repository.getDocumentById(id);
+    if (!document) {
       throw new Error('Document not found');
     }
 
-    const { data: chunks } = await supabaseAdmin
-      .from('knowledge_chunks')
-      .select('*')
-      .eq('document_id', id)
-      .order('chunk_index', { ascending: true })
-      .limit(20);
-
-    const { count: approvedCount } = await supabaseAdmin
-      .from('doctor_knowledge_approvals')
-      .select('*', { count: 'exact', head: true })
-      .eq('document_id', id);
+    const chunks = await this.repository.getChunksByDocumentId(id, 20);
+    const approvedCount = await this.repository.getApprovalCount(id);
 
     return {
       ...document,
-      approved_doctors_count: approvedCount || 0,
-      chunks: chunks || [],
+      approved_doctors_count: approvedCount,
+      chunks,
     };
   }
 
   /**
-   * Deletes a document: deletes storage file, chunks, doctor approvals, and document DB record.
+   * Deletes a document: removes file from Supabase storage and deletes repository records.
    */
   async deleteDocument(id: string): Promise<void> {
     logger.info('Deleting knowledge document', { id });
 
-    // 1. Fetch document to get storage_path
-    const { data: doc } = await supabaseAdmin
-      .from('knowledge_documents')
-      .select('storage_path')
-      .eq('id', id)
-      .maybeSingle();
-
+    const doc = await this.repository.getDocumentById(id);
     if (doc?.storage_path) {
-      // Delete file from Supabase storage
       await supabaseAdmin.storage.from(this.bucketName).remove([doc.storage_path]);
     }
 
-    // 2. Delete chunks and approvals
-    await supabaseAdmin.from('knowledge_chunks').delete().eq('document_id', id);
-    await supabaseAdmin.from('doctor_knowledge_approvals').delete().eq('document_id', id);
-
-    // 3. Delete document record
-    const { error } = await supabaseAdmin.from('knowledge_documents').delete().eq('id', id);
-
-    if (error) {
-      logger.error('Failed to delete document from database', { id, error: error.message });
-      throw new Error(`Failed to delete document: ${error.message}`);
-    }
-
+    await this.repository.deleteDocument(id);
     logger.info('Knowledge document deleted successfully', { id });
   }
 
   /**
-   * Reprocesses an existing document by re-downloading its file from storage and re-running processing.
+   * Reprocesses an existing document.
    */
   async reprocessDocument(id: string): Promise<KnowledgeDocument> {
     logger.info('Reprocessing knowledge document', { id });
 
-    const { data: doc, error } = await supabaseAdmin
-      .from('knowledge_documents')
-      .select('*')
-      .eq('id', id)
-      .single();
-
-    if (error || !doc) {
+    const doc = await this.repository.getDocumentById(id);
+    if (!doc) {
       throw new Error('Document not found for reprocessing');
     }
 
-    // Download file from storage
-    const { data: fileData, error: downloadError } = await supabaseAdmin.storage
-      .from(this.bucketName)
-      .download(doc.storage_path);
-
-    if (downloadError || !fileData) {
-      throw new Error(`Failed to download file from storage: ${downloadError?.message}`);
-    }
-
-    const arrayBuffer = await fileData.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-
-    // Trigger processing
     setImmediate(() => {
-      this.processDocument(id, buffer, doc.mime_type, doc.file_name).catch((err) => {
-        logger.error('Async reprocessDocument error', { id, error: (err as Error).message });
-      });
+      this.processingService
+        .process(id, doc.storage_path, doc.mime_type, doc.file_name)
+        .catch((err) => {
+          logger.error('Async process error in reprocessDocument', { id, error: (err as Error).message });
+        });
     });
 
-    return doc as KnowledgeDocument;
+    return doc;
   }
 }
