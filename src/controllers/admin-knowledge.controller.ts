@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import { AuthenticatedRequest } from '@middleware/auth.middleware';
 import { KnowledgeService } from '@services/knowledge/knowledge.service';
+import { VectorSearchService } from '@services/knowledge/vector-search.service';
 import { logger } from '@utils/logger';
 
 const ALLOWED_MIME_TYPES = [
@@ -14,6 +15,7 @@ const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25 MB
 
 export class AdminKnowledgeController {
   private knowledgeService = new KnowledgeService();
+  private vectorSearchService = new VectorSearchService();
 
   /**
    * POST /api/admin/knowledge/documents
@@ -157,6 +159,37 @@ export class AdminKnowledgeController {
     } catch (err) {
       logger.error('Error in reprocessDocument controller', { error: (err as Error).message });
       res.status(500).json({ status: 'error', message: (err as Error).message || 'Failed to reprocess document' });
+    }
+  }
+
+  /**
+   * POST /api/admin/knowledge/search
+   * Development & testing endpoint for RAG vector similarity retrieval.
+   */
+  async searchKnowledge(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const { query, topK, threshold } = req.body;
+
+      if (!query || typeof query !== 'string' || !query.trim()) {
+        res.status(400).json({ status: 'error', message: 'Query string is required' });
+        return;
+      }
+
+      const results = await this.vectorSearchService.searchSimilarChunks(query, {
+        topK: topK ? parseInt(String(topK), 10) : undefined,
+        threshold: threshold ? parseFloat(String(threshold)) : undefined,
+      });
+
+      res.status(200).json({
+        status: 'success',
+        data: {
+          query: query.trim(),
+          results,
+        },
+      });
+    } catch (err) {
+      logger.error('Error in searchKnowledge controller', { error: (err as Error).message });
+      res.status(500).json({ status: 'error', message: (err as Error).message || 'Vector similarity search failed' });
     }
   }
 }

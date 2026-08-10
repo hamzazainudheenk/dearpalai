@@ -48,4 +48,10 @@ router.delete('/documents/:id', (req, res) => controller.deleteDocument(req, res
  */
 router.post('/documents/:id/reprocess', (req, res) => controller.reprocessDocument(req, res));
 
+/**
+ * POST /api/admin/knowledge/search
+ * Vector similarity search dev/test endpoint
+ */
+router.post('/search', (req, res) => controller.searchKnowledge(req, res));
+
 export default router;

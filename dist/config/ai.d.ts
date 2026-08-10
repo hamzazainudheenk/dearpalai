@@ -1,13 +1,8 @@
 /**
- * AI Configuration (Phase 2 Placeholder)
+ * AI Configuration
  *
- * Centralized configuration for all AI services.
- * Values are loaded from environment variables but are NOT
- * required for Phase 1 — they default to placeholder values.
- *
- * This file exists so that when Phase 2 AI services are
- * implemented, all configuration is already centralized
- * and does not require changes across the codebase.
+ * Centralized configuration for all AI, Embedding, Vector DB, and RAG services.
+ * Loaded from environment variables with sensible defaults.
  */
 export declare const aiConfig: {
     /** Sarvam AI Speech-to-Text configuration */
@@ -45,7 +40,7 @@ export declare const aiConfig: {
     };
     /** RAG (Retrieval-Augmented Generation) configuration */
     readonly rag: {
-        /** Minimum similarity score to consider a document relevant */
+        /** Minimum similarity score to consider a document relevant (0.3 for MiniLM cosine distance) */
         readonly similarityThreshold: number;
         /** Maximum number of documents to retrieve */
         readonly maxResults: number;
@@ -61,7 +56,7 @@ export declare const aiConfig: {
     };
     /** Pipeline configuration */
     readonly pipeline: {
-        /** Whether to run the full AI pipeline (Phase 2) */
+        /** Whether to run the full AI pipeline */
         readonly enabled: boolean;
         /** Timeout for the entire pipeline in milliseconds */
         readonly timeoutMs: number;
