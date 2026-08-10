@@ -12,38 +12,85 @@ export interface IEmbeddingProvider {
 }
 
 /**
- * Default Mock / Extensible Embedding Provider.
- * Can be swapped with OpenAI text-embedding-3, FastEmbed, or Sarvam embedding service when available.
+ * Free local ONNX Transformer Embedding Provider (`Xenova/all-MiniLM-L6-v2`).
+ * Generates real 384-dimensional vector embeddings locally in Node.js memory ($0 cost, 0 API keys).
  */
-export class DefaultEmbeddingProvider implements IEmbeddingProvider {
+export class TransformersEmbeddingProvider implements IEmbeddingProvider {
+  private pipelineInstance: any = null;
+  private isInitializing = false;
+  private readonly modelName = 'Xenova/all-MiniLM-L6-v2';
   private readonly dimensions = 384;
-  private readonly modelName = 'dearpal-dense-v1';
 
+  private async getPipeline() {
+    if (this.pipelineInstance) return this.pipelineInstance;
+
+    if (!this.isInitializing) {
+      this.isInitializing = true;
+      try {
+        logger.info(`Initializing local embedding model '${this.modelName}'...`);
+        const { pipeline } = await import('@xenova/transformers');
+        this.pipelineInstance = await pipeline('feature-extraction', this.modelName);
+        logger.info(`Local embedding model '${this.modelName}' loaded successfully`);
+      } catch (err) {
+        logger.warn('Failed to load @xenova/transformers pipeline, using fallback vector generator', {
+          error: (err as Error).message,
+        });
+      } finally {
+        this.isInitializing = false;
+      }
+    }
+    return this.pipelineInstance;
+  }
+
+  /**
+   * Generates a 384-dimensional vector embedding for text.
+   */
   async generateEmbedding(text: string): Promise<EmbeddingResult> {
-    // Generate deterministic 384-dimensional normalized vector for prototype/RAG structure
-    const vector = new Array(this.dimensions).fill(0).map((_, i) => {
+    const pipe = await this.getPipeline();
+
+    if (pipe) {
+      try {
+        const output = await pipe(text, { pooling: 'mean', normalize: true });
+        const vector = Array.from(output.data) as number[];
+        return {
+          embedding: vector.slice(0, this.dimensions),
+          model: this.modelName,
+          dimensions: this.dimensions,
+        };
+      } catch (err) {
+        logger.warn('Error running transformers pipeline, falling back to normalized feature vector', {
+          error: (err as Error).message,
+        });
+      }
+    }
+
+    // Fallback 384-dim normalized feature vector
+    const vector: number[] = [];
+    for (let i = 0; i < this.dimensions; i++) {
       const charCode = text.charCodeAt(i % text.length) || 0;
-      return Math.sin(charCode + i) * 0.1;
-    });
+      vector.push(Math.sin(charCode * 0.13 + i * 0.07) * 0.5 + 0.5);
+    }
+
+    // Normalize vector length to 1.0
+    const magnitude = Math.sqrt(vector.reduce((sum, val) => sum + val * val, 0)) || 1;
+    const normalized = vector.map((v) => v / magnitude);
 
     return {
-      embedding: vector,
-      model: this.modelName,
+      embedding: normalized,
+      model: `${this.modelName}-fallback`,
       dimensions: this.dimensions,
     };
   }
 
   async generateBatchEmbeddings(texts: string[]): Promise<EmbeddingResult[]> {
+    logger.info(`Generating ${texts.length} embeddings with ${this.modelName}...`);
     return Promise.all(texts.map((t) => this.generateEmbedding(t)));
   }
 }
 
 export class EmbeddingService {
-  constructor(private provider: IEmbeddingProvider = new DefaultEmbeddingProvider()) {}
+  constructor(private provider: IEmbeddingProvider = new TransformersEmbeddingProvider()) {}
 
-  /**
-   * Generates vector embeddings for a chunk of text.
-   */
   async getEmbedding(text: string): Promise<EmbeddingResult> {
     try {
       return await this.provider.generateEmbedding(text);
@@ -53,9 +100,6 @@ export class EmbeddingService {
     }
   }
 
-  /**
-   * Generates vector embeddings for a batch of text chunks.
-   */
   async getBatchEmbeddings(texts: string[]): Promise<EmbeddingResult[]> {
     try {
       return await this.provider.generateBatchEmbeddings(texts);
