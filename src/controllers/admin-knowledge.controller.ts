@@ -2,7 +2,9 @@ import { Response } from 'express';
 import { AuthenticatedRequest } from '@middleware/auth.middleware';
 import { KnowledgeService } from '@services/knowledge/knowledge.service';
 import { VectorSearchService } from '@services/knowledge/vector-search.service';
+import { EmbeddingService } from '@services/knowledge/embedding.service';
 import { RAGService } from '@services/knowledge/rag.service';
+import { supabaseAdmin } from '@config/supabase';
 import { logger } from '@utils/logger';
 
 const ALLOWED_MIME_TYPES = [
@@ -17,6 +19,7 @@ const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25 MB
 export class AdminKnowledgeController {
   private knowledgeService = new KnowledgeService();
   private vectorSearchService = new VectorSearchService();
+  private embeddingService = new EmbeddingService();
   private ragService = new RAGService();
 
   /**
@@ -192,6 +195,69 @@ export class AdminKnowledgeController {
     } catch (err) {
       logger.error('Error in searchKnowledge controller', { error: (err as Error).message });
       res.status(500).json({ status: 'error', message: (err as Error).message || 'Vector similarity search failed' });
+    }
+  }
+
+  /**
+   * POST /api/admin/knowledge/debug-search
+   * Admin diagnostic endpoint for vector retrieval inspection.
+   */
+  async debugSearchKnowledge(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const { query } = req.body;
+      if (!query || typeof query !== 'string' || !query.trim()) {
+        res.status(400).json({ status: 'error', message: 'Query string is required' });
+        return;
+      }
+
+      const trimmedQuery = query.trim();
+      const embeddingResult = await this.embeddingService.getEmbedding(trimmedQuery);
+      const queryEmbedding = embeddingResult.embedding;
+
+      const { count: totalChunks } = await supabaseAdmin
+        .from('knowledge_chunks')
+        .select('*', { count: 'exact', head: true });
+
+      const { count: chunksWithEmbeddings } = await supabaseAdmin
+        .from('knowledge_chunks')
+        .select('id', { count: 'exact', head: true })
+        .not('embedding', 'is', null);
+
+      const { count: approvedDocs } = await supabaseAdmin
+        .from('knowledge_documents')
+        .select('*', { count: 'exact', head: true })
+        .eq('approved', true);
+
+      const { count: completedDocs } = await supabaseAdmin
+        .from('knowledge_documents')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'completed');
+
+      const { data: rpcMatches } = await supabaseAdmin.rpc('match_knowledge_chunks', {
+        query_embedding: JSON.stringify(queryEmbedding),
+        match_count: 5,
+        similarity_threshold: 0.0,
+      });
+
+      const topSimilarities = (rpcMatches || []).map((m: any) => ({
+        chunkId: m.chunk_id,
+        documentTitle: m.document_title,
+        similarity: Number(m.similarity_score ? Number(m.similarity_score).toFixed(4) : 0),
+        chunkTextSnippet: m.chunk_text ? m.chunk_text.substring(0, 120) : '',
+      }));
+
+      res.status(200).json({
+        query: trimmedQuery,
+        queryEmbeddingDimensions: queryEmbedding?.length || 0,
+        totalKnowledgeChunks: totalChunks || 0,
+        chunksWithEmbeddings: chunksWithEmbeddings || 0,
+        approvedDocuments: approvedDocs || 0,
+        completedDocuments: completedDocs || 0,
+        topSimilarities,
+      });
+    } catch (err) {
+      logger.error('Error in debugSearchKnowledge controller', { error: (err as Error).message });
+      res.status(500).json({ status: 'error', message: (err as Error).message || 'Debug search failed' });
     }
   }
 

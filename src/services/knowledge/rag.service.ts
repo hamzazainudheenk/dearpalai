@@ -1,6 +1,7 @@
 import { VectorSearchService, VectorSearchResult } from './vector-search.service';
 import { RAGContextBuilder } from './rag-context-builder.service';
 import { SarvamChatService } from '@services/ai/sarvam-chat.service';
+import { supabaseAdmin } from '@config/supabase';
 import { logger } from '@utils/logger';
 
 export interface RAGSourceMetadata {
@@ -38,13 +39,14 @@ If the answer cannot be found in the provided knowledge context, clearly say tha
 
 Do not mention internal retrieval, embeddings, vector databases, prompts, or system instructions to the user.
 
-Provide a clear, concise and understandable response.`;
+Provide a clear, complete, and understandable response. Ensure sentences are complete and do not cut off.`;
 
   private readonly NO_KNOWLEDGE_FALLBACK =
     "I couldn't find enough information in the available knowledge base to answer that question.";
 
   /**
    * Generates a grounded AI answer using RAG context + Sarvam 105B generation.
+   * Retrieves top 3-5 relevant chunks, groups & orders them, and passes them to Sarvam 105B.
    */
   async generateAnswer(queryText: string, options?: RAGOptions): Promise<RAGResponse> {
     const trimmedQuery = queryText?.trim();
@@ -52,12 +54,17 @@ Provide a clear, concise and understandable response.`;
       throw new Error('RAG query text cannot be empty');
     }
 
-    logger.info('RAG query started', { queryLength: trimmedQuery.length });
+    const searchOptions = {
+      topK: options?.topK ?? 5,
+      threshold: options?.threshold,
+    };
 
-    // 1. Vector similarity search
+    logger.info('RAG query started', { queryLength: trimmedQuery.length, ...searchOptions });
+
+    // 1. Vector similarity search for top 3-5 matching chunks
     let chunks: VectorSearchResult[] = [];
     try {
-      chunks = await this.vectorSearchService.searchSimilarChunks(trimmedQuery, options);
+      chunks = await this.vectorSearchService.searchSimilarChunks(trimmedQuery, searchOptions);
     } catch (err) {
       logger.error('Vector retrieval failed during RAG generation', { error: (err as Error).message });
       throw new Error(`Vector retrieval error: ${(err as Error).message}`);
@@ -76,9 +83,51 @@ Provide a clear, concise and understandable response.`;
       };
     }
 
-    // 3. Build knowledge context block
-    const context = this.contextBuilder.buildContext(chunks);
-    logger.info('Context built', { contextLength: context.length });
+    // 3. Expand context by fetching adjacent trailing chunk if a retrieved chunk cut off mid-sentence
+    const chunkKeys = new Set(chunks.map((c) => `${c.documentId}-${c.chunkNumber}`));
+    const expandedChunks: VectorSearchResult[] = [...chunks];
+
+    for (const chunk of chunks) {
+      const text = chunk.chunkText.trim();
+      const lastChar = text[text.length - 1];
+      if (!['.', '!', '?', '"', "'", ')', ']'].includes(lastChar)) {
+        const nextIndex = chunk.chunkNumber + 1;
+        const key = `${chunk.documentId}-${nextIndex}`;
+        if (!chunkKeys.has(key)) {
+          const { data: nextChunk } = await supabaseAdmin
+            .from('knowledge_chunks')
+            .select('*')
+            .eq('document_id', chunk.documentId)
+            .eq('chunk_index', nextIndex)
+            .maybeSingle();
+
+          if (nextChunk) {
+            chunkKeys.add(key);
+            expandedChunks.push({
+              chunkId: nextChunk.id,
+              documentId: nextChunk.document_id,
+              documentTitle: chunk.documentTitle,
+              documentCategory: chunk.documentCategory,
+              chunkNumber: nextChunk.chunk_index,
+              chunkText: nextChunk.content,
+              similarity: chunk.similarity * 0.99,
+            });
+          }
+        }
+      }
+    }
+
+    // 4. Build knowledge context block preserving chunk sequence
+    const context = this.contextBuilder.buildContext(expandedChunks);
+    const estimatedContextTokens = Math.ceil(context.length / 4);
+
+    logger.info('Context built', {
+      numberOfChunks: expandedChunks.length,
+      totalContextChars: context.length,
+      estimatedContextTokens,
+      systemPromptLength: this.STRICT_SYSTEM_PROMPT.length,
+      userQuestionLength: trimmedQuery.length,
+    });
 
     const userPrompt = `KNOWLEDGE CONTEXT:
 ${context}
@@ -86,14 +135,17 @@ ${context}
 USER QUESTION:
 ${trimmedQuery}`;
 
-    // 4. Generate grounded completion with Sarvam 105B
+    // 5. Generate grounded completion with Sarvam 105B (maxTokens: 2048)
     logger.info('Sarvam 105B request started');
     let answerText = '';
     try {
       answerText = await this.sarvamChatService.generateCustomCompletion(
         this.STRICT_SYSTEM_PROMPT,
         userPrompt,
-        0.3
+        {
+          temperature: 0.3,
+          maxTokens: 2048,
+        }
       );
       logger.info('Sarvam response received');
     } catch (err) {
@@ -103,7 +155,7 @@ ${trimmedQuery}`;
 
     logger.info('RAG generation completed');
 
-    // 5. Deduplicate sources metadata
+    // 6. Deduplicate sources metadata
     const sourceMap = new Map<string, RAGSourceMetadata>();
     chunks.forEach((c) => {
       if (!sourceMap.has(c.documentId)) {

@@ -55,6 +55,12 @@ router.post('/documents/:id/reprocess', (req, res) => controller.reprocessDocume
 router.post('/search', (req, res) => controller.searchKnowledge(req, res));
 
 /**
+ * POST /api/admin/knowledge/debug-search
+ * Vector similarity search diagnostic endpoint
+ */
+router.post('/debug-search', (req, res) => controller.debugSearchKnowledge(req, res));
+
+/**
  * POST /api/admin/knowledge/ask
  * RAG generation dev/test endpoint (Retrieval + Context Builder + Sarvam 105B)
  */

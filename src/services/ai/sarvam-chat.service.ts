@@ -1,6 +1,11 @@
 import { SarvamAIClient } from 'sarvamai';
 import { logger } from '@utils/logger';
 
+export interface SarvamCustomCompletionOptions {
+  temperature?: number;
+  maxTokens?: number;
+}
+
 export class SarvamChatService {
   private client = new SarvamAIClient({
     apiSubscriptionKey: process.env.SARVAM_API_KEY!,
@@ -34,6 +39,7 @@ Rules:
     const response = await this.client.chat.completions({
       model: 'sarvam-105b',
       temperature: 0.7,
+      max_tokens: 2048,
       messages: [
         {
           role: 'system',
@@ -57,21 +63,26 @@ Rules:
   }
 
   /**
-   * Generates a grounded completion using Sarvam 105B with a custom system prompt and user message context.
+   * Generates a grounded completion using Sarvam 105B with a custom system prompt, user context, and token limits.
    */
   async generateCustomCompletion(
     systemPrompt: string,
     userMessage: string,
-    temperature = 0.3
+    options?: SarvamCustomCompletionOptions
   ): Promise<string> {
+    const temperature = options?.temperature ?? 0.3;
+    const maxTokens = options?.maxTokens ?? 2048;
+
     logger.info('Calling Sarvam 105B Custom Completion', {
       userMessageLength: userMessage.length,
       temperature,
+      maxTokens,
     });
 
     const response = await this.client.chat.completions({
       model: 'sarvam-105b',
       temperature,
+      max_tokens: maxTokens,
       messages: [
         {
           role: 'system',
@@ -84,11 +95,22 @@ Rules:
       ],
     });
 
-    logger.info('Sarvam 105B Custom Completion complete');
+    const choice = response.choices?.[0];
+    const finishReason = choice?.finish_reason;
+    const usage = response.usage;
+    const content = choice?.message?.content;
+    const reasoningContent = (choice?.message as any)?.reasoning_content;
 
-    const content = response.choices?.[0]?.message?.content;
-    if (!content) {
-      throw new Error('Empty response content received from Sarvam 105B API');
+    logger.info('Sarvam 105B Custom Completion complete', {
+      finishReason,
+      promptTokens: usage?.prompt_tokens,
+      completionTokens: usage?.completion_tokens,
+      responseLength: content?.length || 0,
+      reasoningLength: reasoningContent?.length || 0,
+    });
+
+    if (!content || !content.trim()) {
+      throw new Error(`Empty response content received from Sarvam 105B API (finish_reason: ${finishReason || 'unknown'})`);
     }
 
     return content;
