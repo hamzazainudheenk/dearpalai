@@ -1,8 +1,8 @@
 /**
  * Message Processor (Orchestrator)
  *
- * Routes incoming messages to the appropriate processor based on type.
- * Stores conversation metadata before and after processing, and syncs to Supabase.
+ * Routes incoming WhatsApp text/voice messages to the appropriate processor based on type.
+ * Stores conversation records before and after processing, and syncs inbound/outbound messages to Supabase.
  *
  * Flow:
  *   Incoming webhook → parse → store metadata → route to processor → send reply → update metadata & Supabase
@@ -27,7 +27,7 @@ export class MessageProcessor {
     private readonly textProcessor: IMessageProcessor,
     private readonly voiceProcessor: IMessageProcessor,
     private readonly whatsAppService: WhatsAppService,
-    private readonly conversationStore: IConversationStore,
+    private readonly conversationStore: IConversationStore
   ) {}
 
   /**
@@ -49,6 +49,20 @@ export class MessageProcessor {
 
       const patientId = patient?.id || null;
 
+      let inboundTimestamp = new Date().toISOString();
+      if (message.timestamp) {
+        const num = parseInt(message.timestamp, 10);
+        if (!isNaN(num) && num > 1000000000) {
+          inboundTimestamp = new Date(num * 1000).toISOString();
+        } else {
+          try {
+            inboundTimestamp = new Date(message.timestamp).toISOString();
+          } catch {
+            inboundTimestamp = new Date().toISOString();
+          }
+        }
+      }
+
       // 1. Insert inbound user message
       await supabaseAdmin.from('conversations').insert({
         patient_id: patientId,
@@ -59,7 +73,7 @@ export class MessageProcessor {
         content: message.textContent || '',
         transcript: result.transcription?.text || '',
         audio_file_path: result.audioFilePath || '',
-        timestamp: new Date(parseInt(message.timestamp, 10) * 1000).toISOString(),
+        timestamp: inboundTimestamp,
       });
 
       // 2. Insert outbound AI reply if sent
@@ -143,17 +157,17 @@ export class MessageProcessor {
         break;
     }
 
-    // Step 3: Send the reply message
+    // Step 3: Send the reply message via WhatsApp API
     if (result.reply) {
       try {
         await this.whatsAppService.sendTextMessage(message.phoneNumber, result.reply);
-        logger.info('Reply sent', {
+        logger.info('Reply sent via WhatsAppService', {
           conversationId,
           messageId: message.messageId,
-          reply: result.reply,
+          replyLength: result.reply.length,
         });
       } catch (error) {
-        logger.error('Failed to send reply', {
+        logger.error('Failed to send reply via WhatsAppService', {
           conversationId,
           messageId: message.messageId,
           error: (error as Error).message,
@@ -169,7 +183,7 @@ export class MessageProcessor {
     };
     await this.conversationStore.store(updatedRecord);
 
-    // Step 5: Sync to Supabase for Frontend visibility
+    // Step 5: Sync to Supabase conversations table
     await this.syncToSupabase(message, result);
 
     logger.info('Message processing complete', {

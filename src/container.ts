@@ -1,19 +1,3 @@
-/**
- * Dependency Injection Container
- *
- * Simple service-container pattern that wires up all services
- * with their dependencies. This avoids the complexity of decorator-based
- * DI libraries while still providing clean dependency management.
- *
- * To swap a mock service for a real implementation:
- * 1. Create the real implementation (e.g., RealSarvamSpeechService)
- * 2. Update the corresponding getter in this container
- * 3. No changes needed in processors, controllers, or routes
- *
- * All services are lazily instantiated (created on first access)
- * and cached as singletons for the lifetime of the application.
- */
-
 import { IConversationStore } from '@app-types/index';
 
 // Services
@@ -21,14 +5,13 @@ import { WhatsAppService } from '@services/whatsapp/whatsapp.service';
 import {
   ISpeechService,
   IEmbeddingService,
-  IRagService,
   IRiskAssessmentService,
   IDecisionEngine,
   IAIPipeline,
 } from '@services/ai/interfaces';
 import { SarvamSpeechService } from '@services/ai/sarvam-speech.service';
 import { EmbeddingService } from '@services/ai/embedding.service';
-import { RagService } from '@services/ai/rag.service';
+import { RAGService } from '@services/knowledge/rag.service';
 import { RiskAssessmentService } from '@services/ai/risk-assessment.service';
 import { DecisionEngineService } from '@services/ai/decision-engine.service';
 import { SarvamChatService } from '@services/ai/sarvam-chat.service';
@@ -49,7 +32,6 @@ import { WebhookController } from '@controllers/webhook.controller';
  * Application service container.
  *
  * Provides lazy-initialized singleton instances of all services.
- * Change implementations here to swap mocks for real services.
  */
 class Container {
   // ─── Cached Instances ─────────────────────────────────
@@ -57,7 +39,7 @@ class Container {
   private _whatsAppService?: WhatsAppService;
   private _speechService?: ISpeechService;
   private _embeddingService?: IEmbeddingService;
-  private _ragService?: IRagService;
+  private _ragService?: RAGService;
   private _riskAssessmentService?: IRiskAssessmentService;
   private _sarvamChatService?: SarvamChatService;
   private _decisionEngine?: IDecisionEngine;
@@ -79,7 +61,6 @@ class Container {
 
   // ─── AI Services ──────────────────────────────────────
 
-  /** Speech-to-Text: Swap SarvamSpeechService for real implementation in Phase 2 */
   get speechService(): ISpeechService {
     if (!this._speechService) {
       this._speechService = new SarvamSpeechService();
@@ -87,7 +68,6 @@ class Container {
     return this._speechService;
   }
 
-  /** Embedding: Swap EmbeddingService for real OpenAI implementation in Phase 2 */
   get embeddingService(): IEmbeddingService {
     if (!this._embeddingService) {
       this._embeddingService = new EmbeddingService();
@@ -95,15 +75,14 @@ class Container {
     return this._embeddingService;
   }
 
-  /** RAG: Swap RagService for real vector DB implementation in Phase 2 */
-  get ragService(): IRagService {
+  /** Production Verified RAG Service */
+  get ragService(): RAGService {
     if (!this._ragService) {
-      this._ragService = new RagService();
+      this._ragService = new RAGService();
     }
     return this._ragService;
   }
 
-  /** Risk Assessment: Swap for real NLP-based implementation in Phase 2 */
   get riskAssessmentService(): IRiskAssessmentService {
     if (!this._riskAssessmentService) {
       this._riskAssessmentService = new RiskAssessmentService();
@@ -111,7 +90,6 @@ class Container {
     return this._riskAssessmentService;
   }
 
-  /** Sarvam Chat Service */
   get sarvamChatService(): SarvamChatService {
     if (!this._sarvamChatService) {
       this._sarvamChatService = new SarvamChatService();
@@ -119,7 +97,6 @@ class Container {
     return this._sarvamChatService;
   }
 
-  /** Decision Engine: Swapped for Sarvam AI LLM-based implementation */
   get decisionEngine(): IDecisionEngine {
     if (!this._decisionEngine) {
       this._decisionEngine = new DecisionEngineService(this.sarvamChatService);
@@ -127,7 +104,6 @@ class Container {
     return this._decisionEngine;
   }
 
-  /** AI Pipeline: Orchestrates all AI services */
   get aiPipeline(): IAIPipeline {
     if (!this._aiPipeline) {
       this._aiPipeline = new AIPipelineService(
@@ -135,7 +111,7 @@ class Container {
         this.embeddingService,
         this.ragService,
         this.riskAssessmentService,
-        this.decisionEngine,
+        this.decisionEngine
       );
     }
     return this._aiPipeline;
@@ -143,7 +119,6 @@ class Container {
 
   // ─── Store ────────────────────────────────────────────
 
-  /** Conversation Store: Swap MemoryConversationStore for MongoConversationStore in Phase 2 */
   get conversationStore(): IConversationStore {
     if (!this._conversationStore) {
       this._conversationStore = new MemoryConversationStore();
@@ -173,7 +148,7 @@ class Container {
         this.textProcessor,
         this.voiceProcessor,
         this.whatsAppService,
-        this.conversationStore,
+        this.conversationStore
       );
     }
     return this._messageProcessor;
@@ -185,12 +160,11 @@ class Container {
     if (!this._webhookController) {
       this._webhookController = new WebhookController(
         this.whatsAppService,
-        this.messageProcessor,
+        this.messageProcessor
       );
     }
     return this._webhookController;
   }
 }
 
-/** Global application container — singleton */
 export const container = new Container();

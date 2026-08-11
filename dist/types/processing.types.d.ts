@@ -149,6 +149,8 @@ export interface AIPipelineOutput {
     success: boolean;
     /** Pipeline processing source */
     source: string;
+    /** Optional metadata */
+    metadata?: Record<string, unknown>;
 }
 /** Interface for message type processors */
 export interface IMessageProcessor {

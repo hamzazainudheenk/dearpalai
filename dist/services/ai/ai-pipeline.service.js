@@ -1,16 +1,4 @@
 "use strict";
-/**
- * AI Pipeline Orchestrator (Placeholder Implementation)
- *
- * Coordinates the full AI processing flow:
- *   Voice/Text → STT (Sarvam) → Embedding → RAG → Risk Assessment → Decision Engine → Response
- *
- * Phase 1: Returns static responses from MessageTemplates.
- * Phase 2: Will orchestrate all AI services in sequence.
- *
- * All future AI processing MUST go through this service.
- * Individual processors should call the pipeline, not AI services directly.
- */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AIPipelineService = void 0;
 const index_1 = require("../../types/index");
@@ -26,24 +14,17 @@ class AIPipelineService {
         this.decisionEngine = decisionEngine;
     }
     /**
-     * Processes a message through the full AI pipeline.
+     * Processes an incoming WhatsApp text or voice message through the production AI pipeline.
      *
-     * Pipeline stages:
-     * 1. Speech-to-Text (if audio)
-     * 2. Generate embedding
-     * 3. RAG retrieval
-     * 4. Risk assessment
-     * 5. Decision engine
-     *
-     * In Phase 1, the pipeline is disabled and returns static responses.
-     * Set AI_PIPELINE_ENABLED=true in .env to activate (Phase 2).
-     *
-     * @param input - Pipeline input containing the parsed message and optional audio
-     * @returns Pipeline output with the final reply and intermediate results
+     * Flow:
+     * 1. Speech-to-Text (if voice message)
+     * 2. RAG Retrieval + Context Assembly + Sarvam 105B Generation
+     * 3. Risk/Safety Assessment
+     * 4. Return natural language answer (Source metadata kept internal)
      */
     async process(input) {
         const { message, audioFilePath } = input;
-        // Phase 1: Pipeline disabled — return static responses
+        // Fallback if pipeline explicitly disabled in config
         if (!ai_1.aiConfig.pipeline.enabled) {
             logger_1.logger.info('AI pipeline disabled, returning static response', {
                 messageId: message.messageId,
@@ -58,8 +39,6 @@ class AIPipelineService {
                 source: 'static',
             };
         }
-        // ─── Phase 2: Full AI Pipeline ───────────────────────
-        // The code below will be activated when AI_PIPELINE_ENABLED=true
         try {
             logger_1.logger.info('AI pipeline processing started', {
                 messageId: message.messageId,
@@ -76,19 +55,14 @@ class AIPipelineService {
                     language: transcription.language,
                 });
             }
-            // Stage 2: Generate embedding
-            const embeddingResult = await this.embeddingService.generateEmbedding(messageText);
-            logger_1.logger.info('Pipeline: Embedding generated', {
-                model: embeddingResult.model,
-                tokenCount: embeddingResult.tokenCount,
+            // Stage 2: RAG Retrieval + Sarvam 105B Generation
+            logger_1.logger.info('Pipeline: RAGService query started', { messageTextLength: messageText.length });
+            const ragResponse = await this.ragService.generateAnswer(messageText);
+            logger_1.logger.info('Pipeline: RAGService query complete', {
+                answerLength: ragResponse.answer?.length || 0,
+                sourcesCount: ragResponse.sources?.length || 0,
             });
-            // Stage 3: RAG retrieval
-            const ragResult = await this.ragService.query(embeddingResult.embedding, messageText);
-            logger_1.logger.info('Pipeline: RAG query complete', {
-                documentsFound: ragResult.documents.length,
-                hasRelevantResults: ragResult.hasRelevantResults,
-            });
-            // Stage 4: Risk assessment
+            // Stage 3: Safety / Risk Assessment
             const riskAssessment = await this.riskAssessmentService.assess(messageText, {
                 phoneNumber: message.phoneNumber,
                 messageType: message.messageType,
@@ -97,34 +71,24 @@ class AIPipelineService {
                 riskLevel: riskAssessment.riskLevel,
                 score: riskAssessment.score,
             });
-            // Stage 5: Decision engine
-            const decision = await this.decisionEngine.decide({
-                message: messageText,
-                transcription,
-                ragResult,
-                riskAssessment,
-            });
-            logger_1.logger.info('Pipeline: Decision made', {
-                source: decision.source,
-                confidence: decision.confidence,
-                shouldEscalate: decision.shouldEscalate,
-            });
+            // Stage 4: Decision engine format output
+            const sourceTag = ragResponse.sources.length > 0 ? 'rag' : 'fallback';
             return {
-                reply: decision.reply,
+                reply: ragResponse.answer,
                 transcription,
-                ragResult,
                 riskAssessment,
-                decision,
                 success: true,
-                source: decision.source,
+                source: sourceTag,
+                metadata: {
+                    sources: ragResponse.sources, // Kept internal in pipeline metadata
+                },
             };
         }
         catch (error) {
-            logger_1.logger.error('AI pipeline error', {
+            logger_1.logger.error('AI pipeline processing error', {
                 messageId: message.messageId,
                 error: error.message,
             });
-            // Fallback to static response on pipeline failure
             return {
                 reply: messages_1.MessageTemplates.PROCESSING_ERROR,
                 success: false,

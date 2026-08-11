@@ -1,8 +1,8 @@
 /**
  * Message Processor (Orchestrator)
  *
- * Routes incoming messages to the appropriate processor based on type.
- * Stores conversation metadata before and after processing, and syncs to Supabase.
+ * Routes incoming WhatsApp text/voice messages to the appropriate processor based on type.
+ * Stores conversation records before and after processing, and syncs inbound/outbound messages to Supabase.
  *
  * Flow:
  *   Incoming webhook → parse → store metadata → route to processor → send reply → update metadata & Supabase
