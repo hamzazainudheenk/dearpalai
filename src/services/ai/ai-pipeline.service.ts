@@ -21,13 +21,46 @@ export class AIPipelineService implements IAIPipeline {
   ) {}
 
   /**
+   * Fast intent check for conversational greetings.
+   */
+  private isGreeting(text: string): boolean {
+    const cleaned = text
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\s]/g, '');
+
+    const GREETINGS = new Set([
+      'hi',
+      'hello',
+      'hey',
+      'heyy',
+      'heyyy',
+      'hallo',
+      'good morning',
+      'good afternoon',
+      'good evening',
+      'good day',
+      'assalamu alaikum',
+      'assalam alaikum',
+      'salaam',
+      'salam',
+      'namaste',
+      'namaskar',
+      'hola',
+    ]);
+
+    return GREETINGS.has(cleaned);
+  }
+
+  /**
    * Processes an incoming WhatsApp text or voice message through the production AI pipeline.
    *
    * Flow:
    * 1. Speech-to-Text (if voice message)
-   * 2. RAG Retrieval + Context Assembly + Sarvam 105B Generation
-   * 3. Risk/Safety Assessment
-   * 4. Return natural language answer (Source metadata kept internal)
+   * 2. Greeting Intent Check (Fast path: returns greeting without calling RAG / Sarvam 105B)
+   * 3. RAG Retrieval + Context Assembly + Sarvam 105B Generation
+   * 4. Risk/Safety Assessment
+   * 5. WhatsApp Response Formatting
    */
   async process(input: AIPipelineInput): Promise<AIPipelineOutput> {
     const { message, audioFilePath } = input;
@@ -70,7 +103,29 @@ export class AIPipelineService implements IAIPipeline {
         });
       }
 
-      // Stage 2: RAG Retrieval + Sarvam 105B Generation
+      // Stage 2: Fast Greeting Intent Check (Bypasses RAG & Sarvam 105B)
+      if (this.isGreeting(messageText)) {
+        logger.info('Pipeline: Greeting intent detected, skipping RAG/Sarvam 105B', {
+          messageId: message.messageId,
+          text: messageText,
+        });
+
+        // Run light risk check for completeness
+        const riskAssessment = await this.riskAssessmentService.assess(messageText, {
+          phoneNumber: message.phoneNumber,
+          messageType: message.messageType,
+        });
+
+        return {
+          reply: MessageTemplates.TEXT_RECEIVED,
+          transcription,
+          riskAssessment,
+          success: true,
+          source: 'greeting',
+        };
+      }
+
+      // Stage 3: RAG Retrieval + Sarvam 105B Generation
       logger.info('Pipeline: RAGService query started', { messageTextLength: messageText.length });
       const ragResponse = await this.ragService.generateAnswer(messageText);
 
@@ -79,7 +134,7 @@ export class AIPipelineService implements IAIPipeline {
         sourcesCount: ragResponse.sources?.length || 0,
       });
 
-      // Stage 3: Safety / Risk Assessment
+      // Stage 4: Safety / Risk Assessment
       const riskAssessment = await this.riskAssessmentService.assess(messageText, {
         phoneNumber: message.phoneNumber,
         messageType: message.messageType,
@@ -89,7 +144,7 @@ export class AIPipelineService implements IAIPipeline {
         score: riskAssessment.score,
       });
 
-      // Stage 4: Decision engine format output
+      // Stage 5: Decision engine format output
       const sourceTag = ragResponse.sources.length > 0 ? 'rag' : 'fallback';
 
       return {
@@ -99,7 +154,7 @@ export class AIPipelineService implements IAIPipeline {
         success: true,
         source: sourceTag,
         metadata: {
-          sources: ragResponse.sources, // Kept internal in pipeline metadata
+          sources: ragResponse.sources,
         },
       };
     } catch (error) {

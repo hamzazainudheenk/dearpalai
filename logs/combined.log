@@ -387,3 +387,57 @@
 {"conversationId":"ad35d6ca-77af-4a86-aaca-0041dc72efb0","level":"info","message":"Reply sent via WhatsAppService","messageId":"wamid.test_1786468865194_2","replyLength":91,"service":"dearpal-whatsapp","timestamp":"2026-08-11 22:51:06.403"}
 {"cleanPhone":"919876543210","level":"info","message":"Synced conversation to Supabase","patientId":null,"service":"dearpal-whatsapp","timestamp":"2026-08-11 22:51:06.685"}
 {"conversationId":"ad35d6ca-77af-4a86-aaca-0041dc72efb0","level":"info","message":"Message processing complete","messageId":"wamid.test_1786468865194_2","service":"dearpal-whatsapp","source":"fallback","success":true,"timestamp":"2026-08-11 22:51:06.686"}
+{"conversationId":"83d080e5-73ae-4407-9704-c41a4db29bf8","level":"info","message":"Processing message","messageId":"wamid.test_greet_1786494241776","messageType":"text","phoneNumber":"919876543210","service":"dearpal-whatsapp","timestamp":"2026-08-12 05:54:01.778"}
+{"level":"info","message":"Processing text message","messageId":"wamid.test_greet_1786494241776","phoneNumber":"919876543210","service":"dearpal-whatsapp","textLength":2,"timestamp":"2026-08-12 05:54:01.807"}
+{"level":"info","message":"AI pipeline processing started","messageId":"wamid.test_greet_1786494241776","messageType":"text","service":"dearpal-whatsapp","timestamp":"2026-08-12 05:54:01.809"}
+{"level":"info","message":"Pipeline: Greeting intent detected, skipping RAG/Sarvam 105B","messageId":"wamid.test_greet_1786494241776","service":"dearpal-whatsapp","text":"hi","timestamp":"2026-08-12 05:54:01.809"}
+{"hasContext":true,"level":"info","message":"[Mock] Risk assessment called","messageLength":2,"service":"dearpal-whatsapp","timestamp":"2026-08-12 05:54:01.810"}
+{"level":"info","message":"Text message sent successfully","messageId":"wamid.HBgMOTE5ODc2NTQzMjEwFQIAERgSNEFEOTBBRTQyOUJGRTQ4QTYxAA==","phoneNumber":"919876543210","service":"dearpal-whatsapp","timestamp":"2026-08-12 05:54:03.926"}
+{"conversationId":"83d080e5-73ae-4407-9704-c41a4db29bf8","level":"info","message":"Reply sent via WhatsAppService","messageId":"wamid.test_greet_1786494241776","replyLength":50,"service":"dearpal-whatsapp","timestamp":"2026-08-12 05:54:03.927"}
+{"cleanPhone":"919876543210","level":"info","message":"Synced conversation to Supabase","patientId":null,"service":"dearpal-whatsapp","timestamp":"2026-08-12 05:54:05.930"}
+{"conversationId":"83d080e5-73ae-4407-9704-c41a4db29bf8","level":"info","message":"Message processing complete","messageId":"wamid.test_greet_1786494241776","service":"dearpal-whatsapp","source":"greeting","success":true,"timestamp":"2026-08-12 05:54:05.931"}
+{"conversationId":"42d9632a-18e0-44fb-862c-1bf996d72400","level":"info","message":"Processing message","messageId":"wamid.test_rag_1786494245933","messageType":"text","phoneNumber":"919876543210","service":"dearpal-whatsapp","timestamp":"2026-08-12 05:54:05.933"}
+{"level":"info","message":"Processing text message","messageId":"wamid.test_rag_1786494245933","phoneNumber":"919876543210","service":"dearpal-whatsapp","textLength":38,"timestamp":"2026-08-12 05:54:05.933"}
+{"level":"info","message":"AI pipeline processing started","messageId":"wamid.test_rag_1786494245933","messageType":"text","service":"dearpal-whatsapp","timestamp":"2026-08-12 05:54:05.934"}
+{"level":"info","message":"Pipeline: RAGService query started","messageTextLength":38,"service":"dearpal-whatsapp","timestamp":"2026-08-12 05:54:05.934"}
+{"level":"info","message":"RAG query started","queryLength":38,"service":"dearpal-whatsapp","timestamp":"2026-08-12 05:54:05.935","topK":5}
+{"level":"info","message":"Vector search started","queryLength":38,"service":"dearpal-whatsapp","threshold":0.3,"timestamp":"2026-08-12 05:54:05.936","topK":5}
+{"level":"info","message":"Initializing local embedding model 'Xenova/all-MiniLM-L6-v2'...","service":"dearpal-whatsapp","timestamp":"2026-08-12 05:54:05.937"}
+{"level":"info","message":"Local embedding model 'Xenova/all-MiniLM-L6-v2' loaded successfully","service":"dearpal-whatsapp","timestamp":"2026-08-12 05:54:09.073"}
+{"dimensions":384,"level":"info","message":"Query embedding generated","model":"Xenova/all-MiniLM-L6-v2","service":"dearpal-whatsapp","timestamp":"2026-08-12 05:54:09.102"}
+{"level":"info","message":"Number of approved documents available: 1","service":"dearpal-whatsapp","timestamp":"2026-08-12 05:54:09.226"}
+{"level":"info","message":"Vector search completed","numberOfResults":1,"service":"dearpal-whatsapp","timestamp":"2026-08-12 05:54:09.510","topSimilarityScore":0.7822}
+{"level":"info","message":"Number of chunks retrieved: 1","service":"dearpal-whatsapp","timestamp":"2026-08-12 05:54:09.510"}
+{"level":"info","message":"Top similarity score: 0.7822","service":"dearpal-whatsapp","timestamp":"2026-08-12 05:54:09.511"}
+{"estimatedContextTokens":430,"level":"info","message":"Context built","numberOfChunks":2,"service":"dearpal-whatsapp","systemPromptLength":995,"timestamp":"2026-08-12 05:54:09.672","totalContextChars":1719,"userQuestionLength":38}
+{"level":"info","message":"Sarvam 105B request started","service":"dearpal-whatsapp","timestamp":"2026-08-12 05:54:09.672"}
+{"level":"info","maxTokens":2048,"message":"Calling Sarvam 105B Custom Completion","service":"dearpal-whatsapp","temperature":0.3,"timestamp":"2026-08-12 05:54:09.673","userMessageLength":1793}
+{"completionTokens":1350,"finishReason":"stop","level":"info","message":"Sarvam 105B Custom Completion complete","promptTokens":593,"reasoningLength":4890,"responseLength":1020,"service":"dearpal-whatsapp","timestamp":"2026-08-12 05:54:17.181"}
+{"level":"info","message":"Sarvam response received","service":"dearpal-whatsapp","timestamp":"2026-08-12 05:54:17.182"}
+{"level":"info","message":"RAG generation completed","service":"dearpal-whatsapp","timestamp":"2026-08-12 05:54:17.182"}
+{"answerLength":1020,"level":"info","message":"Pipeline: RAGService query complete","service":"dearpal-whatsapp","sourcesCount":1,"timestamp":"2026-08-12 05:54:17.182"}
+{"hasContext":true,"level":"info","message":"[Mock] Risk assessment called","messageLength":38,"service":"dearpal-whatsapp","timestamp":"2026-08-12 05:54:17.182"}
+{"level":"info","message":"Pipeline: Risk assessment complete","riskLevel":"low","score":0,"service":"dearpal-whatsapp","timestamp":"2026-08-12 05:54:17.182"}
+{"level":"info","message":"Text message sent successfully","messageId":"wamid.HBgMOTE5ODc2NTQzMjEwFQIAERgSMEZCMjhGODRBQTEyOEIwNTkyAA==","phoneNumber":"919876543210","service":"dearpal-whatsapp","timestamp":"2026-08-12 05:54:18.407"}
+{"conversationId":"42d9632a-18e0-44fb-862c-1bf996d72400","level":"info","message":"Reply sent via WhatsAppService","messageId":"wamid.test_rag_1786494245933","replyLength":1020,"service":"dearpal-whatsapp","timestamp":"2026-08-12 05:54:18.408"}
+{"cleanPhone":"919876543210","level":"info","message":"Synced conversation to Supabase","patientId":null,"service":"dearpal-whatsapp","timestamp":"2026-08-12 05:54:18.789"}
+{"conversationId":"42d9632a-18e0-44fb-862c-1bf996d72400","level":"info","message":"Message processing complete","messageId":"wamid.test_rag_1786494245933","service":"dearpal-whatsapp","source":"rag","success":true,"timestamp":"2026-08-12 05:54:18.790"}
+{"conversationId":"4989db38-23b4-45e0-9d60-f20383a5ee7b","level":"info","message":"Processing message","messageId":"wamid.test_ood_1786494258791","messageType":"text","phoneNumber":"919876543210","service":"dearpal-whatsapp","timestamp":"2026-08-12 05:54:18.791"}
+{"level":"info","message":"Processing text message","messageId":"wamid.test_ood_1786494258791","phoneNumber":"919876543210","service":"dearpal-whatsapp","textLength":30,"timestamp":"2026-08-12 05:54:18.791"}
+{"level":"info","message":"AI pipeline processing started","messageId":"wamid.test_ood_1786494258791","messageType":"text","service":"dearpal-whatsapp","timestamp":"2026-08-12 05:54:18.792"}
+{"level":"info","message":"Pipeline: RAGService query started","messageTextLength":30,"service":"dearpal-whatsapp","timestamp":"2026-08-12 05:54:18.792"}
+{"level":"info","message":"RAG query started","queryLength":30,"service":"dearpal-whatsapp","timestamp":"2026-08-12 05:54:18.792","topK":5}
+{"level":"info","message":"Vector search started","queryLength":30,"service":"dearpal-whatsapp","threshold":0.3,"timestamp":"2026-08-12 05:54:18.792","topK":5}
+{"dimensions":384,"level":"info","message":"Query embedding generated","model":"Xenova/all-MiniLM-L6-v2","service":"dearpal-whatsapp","timestamp":"2026-08-12 05:54:18.802"}
+{"level":"info","message":"Number of approved documents available: 1","service":"dearpal-whatsapp","timestamp":"2026-08-12 05:54:18.872"}
+{"level":"info","message":"No relevant knowledge found (no chunks met similarity threshold)","service":"dearpal-whatsapp","timestamp":"2026-08-12 05:54:18.947"}
+{"level":"info","message":"Number of chunks retrieved: 0","service":"dearpal-whatsapp","timestamp":"2026-08-12 05:54:18.947"}
+{"level":"info","message":"Top similarity score: 0","service":"dearpal-whatsapp","timestamp":"2026-08-12 05:54:18.947"}
+{"level":"info","message":"No relevant chunks found above similarity threshold; skipping Sarvam 105B call","service":"dearpal-whatsapp","timestamp":"2026-08-12 05:54:18.947"}
+{"answerLength":91,"level":"info","message":"Pipeline: RAGService query complete","service":"dearpal-whatsapp","sourcesCount":0,"timestamp":"2026-08-12 05:54:18.947"}
+{"hasContext":true,"level":"info","message":"[Mock] Risk assessment called","messageLength":30,"service":"dearpal-whatsapp","timestamp":"2026-08-12 05:54:18.948"}
+{"level":"info","message":"Pipeline: Risk assessment complete","riskLevel":"low","score":0,"service":"dearpal-whatsapp","timestamp":"2026-08-12 05:54:18.948"}
+{"level":"info","message":"Text message sent successfully","messageId":"wamid.HBgMOTE5ODc2NTQzMjEwFQIAERgSNDE2MTQwNjc0QTgzNUFDQkUwAA==","phoneNumber":"919876543210","service":"dearpal-whatsapp","timestamp":"2026-08-12 05:54:19.632"}
+{"conversationId":"4989db38-23b4-45e0-9d60-f20383a5ee7b","level":"info","message":"Reply sent via WhatsAppService","messageId":"wamid.test_ood_1786494258791","replyLength":91,"service":"dearpal-whatsapp","timestamp":"2026-08-12 05:54:19.633"}
+{"cleanPhone":"919876543210","level":"info","message":"Synced conversation to Supabase","patientId":null,"service":"dearpal-whatsapp","timestamp":"2026-08-12 05:54:19.860"}
+{"conversationId":"4989db38-23b4-45e0-9d60-f20383a5ee7b","level":"info","message":"Message processing complete","messageId":"wamid.test_ood_1786494258791","service":"dearpal-whatsapp","source":"fallback","success":true,"timestamp":"2026-08-12 05:54:19.860"}

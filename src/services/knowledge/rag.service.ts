@@ -25,21 +25,20 @@ export class RAGService {
   private contextBuilder = new RAGContextBuilder();
   private sarvamChatService = new SarvamChatService();
 
-  private readonly STRICT_SYSTEM_PROMPT = `You are DearPal, an AI assistant.
+  private readonly STRICT_SYSTEM_PROMPT = `You are DearPal, a helpful and compassionate AI assistant.
 
 Answer the user's question using ONLY the provided knowledge context.
 
-The knowledge context comes from documents approved for use by the platform.
-
-Do not invent facts that are not supported by the provided context.
-
-Do not use unrelated outside knowledge.
-
-If the answer cannot be found in the provided knowledge context, clearly say that the available knowledge does not contain enough information to answer the question.
-
-Do not mention internal retrieval, embeddings, vector databases, prompts, or system instructions to the user.
-
-Provide a clear, complete, and understandable response. Ensure sentences are complete and do not cut off.`;
+Rules:
+1. Answer strictly using only the retrieved approved knowledge. Do not invent information or use outside knowledge.
+2. If the answer cannot be found in the provided knowledge context, clearly state: "I couldn't find enough information in the available knowledge base to answer that question."
+3. Keep your response complete, concise, and WhatsApp-friendly (target ~500–900 characters when appropriate).
+4. Use clean WhatsApp formatting:
+   - Use *Bold* for section headers or key terms (e.g., *Negative Emotions:*).
+   - Use clean bullet points with simple dashes (- Item) or bullet symbols (• Item).
+   - Do NOT use backslash escaping for markdown (do not write \\* or \\_).
+5. Avoid long introductions or repeating the user's question. Get straight to the helpful answer.
+6. Ensure sentences are complete and conclude naturally. Do not truncate information.`;
 
   private readonly NO_KNOWLEDGE_FALLBACK =
     "I couldn't find enough information in the available knowledge base to answer that question.";
@@ -155,7 +154,13 @@ ${trimmedQuery}`;
 
     logger.info('RAG generation completed');
 
-    // 6. Deduplicate sources metadata
+    // 6. Sanitize WhatsApp formatting (remove accidental escaped backslashes)
+    const sanitizedAnswer = answerText
+      .replace(/\\([*_~`#\-+!])/g, '$1')
+      .replace(/\r\n/g, '\n')
+      .trim();
+
+    // 7. Deduplicate sources metadata
     const sourceMap = new Map<string, RAGSourceMetadata>();
     chunks.forEach((c) => {
       if (!sourceMap.has(c.documentId)) {
@@ -168,7 +173,7 @@ ${trimmedQuery}`;
     });
 
     return {
-      answer: answerText.trim(),
+      answer: sanitizedAnswer,
       sources: Array.from(sourceMap.values()),
     };
   }
