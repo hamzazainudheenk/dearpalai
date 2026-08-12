@@ -24,20 +24,15 @@ export class AdminKnowledgeController {
 
   /**
    * POST /api/admin/knowledge/documents
-   * Uploads and processes a new trusted knowledge document for RAG.
+   * Uploads and processes single or batch trusted knowledge documents for RAG.
    */
   async uploadDocument(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      const file = req.file;
+      const files: Express.Multer.File[] = (req.files as Express.Multer.File[]) || (req.file ? [req.file] : []);
       const { title, description, category } = req.body;
 
-      if (!file) {
+      if (!files || files.length === 0) {
         res.status(400).json({ status: 'error', message: 'Document file is required' });
-        return;
-      }
-
-      if (!title || !title.trim()) {
-        res.status(400).json({ status: 'error', message: 'Document title is required' });
         return;
       }
 
@@ -46,39 +41,77 @@ export class AdminKnowledgeController {
         return;
       }
 
-      // MIME type check
-      const ext = file.originalname.split('.').pop()?.toLowerCase();
-      const isValidExt = ['pdf', 'docx', 'doc', 'txt'].includes(ext || '');
-      const isValidMime = ALLOWED_MIME_TYPES.includes(file.mimetype) || file.mimetype.startsWith('text/');
+      const createdDocs: any[] = [];
+      const errors: Array<{ fileName: string; error: string }> = [];
 
-      if (!isValidExt && !isValidMime) {
-        res.status(400).json({
-          status: 'error',
-          message: 'Unsupported file type. Allowed formats: PDF, DOCX, TXT',
-        });
-        return;
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+
+        // MIME / Extension check
+        const ext = file.originalname.split('.').pop()?.toLowerCase();
+        const isValidExt = ['pdf', 'docx', 'doc', 'txt'].includes(ext || '');
+        const isValidMime = ALLOWED_MIME_TYPES.includes(file.mimetype) || file.mimetype.startsWith('text/');
+
+        if (!isValidExt && !isValidMime) {
+          errors.push({
+            fileName: file.originalname,
+            error: `Unsupported file type '.${ext}'. Allowed formats: PDF, DOCX, TXT.`,
+          });
+          continue;
+        }
+
+        // File size check
+        if (file.size > MAX_FILE_SIZE) {
+          errors.push({
+            fileName: file.originalname,
+            error: `File size exceeds maximum limit of 25MB. Size: ${(file.size / (1024 * 1024)).toFixed(1)}MB.`,
+          });
+          continue;
+        }
+
+        // Determine title for document record
+        let docTitle = title?.trim();
+        if (!docTitle || files.length > 1) {
+          const nameWithoutExt = file.originalname.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+          docTitle = docTitle ? `${docTitle} - ${nameWithoutExt}` : nameWithoutExt;
+        }
+
+        try {
+          const document = await this.knowledgeService.uploadDocument(
+            file,
+            docTitle,
+            description?.trim() || '',
+            category.trim()
+          );
+          createdDocs.push(document);
+        } catch (fileErr) {
+          logger.error('Error uploading file in batch', {
+            fileName: file.originalname,
+            error: (fileErr as Error).message,
+          });
+          errors.push({
+            fileName: file.originalname,
+            error: (fileErr as Error).message,
+          });
+        }
       }
 
-      // File size check
-      if (file.size > MAX_FILE_SIZE) {
-        res.status(400).json({
-          status: 'error',
-          message: `File size exceeds maximum limit of 25MB. Uploaded size: ${(file.size / (1024 * 1024)).toFixed(1)}MB`,
-        });
-        return;
-      }
-
-      const document = await this.knowledgeService.uploadDocument(
-        file,
-        title,
-        description || '',
-        category
-      );
+      const summary = {
+        total: files.length,
+        successful: createdDocs.length,
+        failed: errors.length,
+        processing: createdDocs.filter((d) => d.status === 'processing').length,
+      };
 
       res.status(201).json({
         status: 'success',
-        message: 'Knowledge document uploaded and processing started',
-        data: document,
+        message:
+          files.length === 1
+            ? 'Knowledge document uploaded and processing started'
+            : `Batch upload complete: ${summary.successful} queued, ${summary.failed} failed out of ${summary.total} files`,
+        summary,
+        data: files.length === 1 ? createdDocs[0] : createdDocs,
+        errors: errors.length > 0 ? errors : undefined,
       });
     } catch (err) {
       logger.error('Error in uploadDocument controller', { error: (err as Error).message });

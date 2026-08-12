@@ -6,7 +6,7 @@ import { authenticateDoctor, requireAdmin } from '@middleware/auth.middleware';
 const router = Router();
 const controller = new AdminKnowledgeController();
 
-// Configure multer for memory storage file uploads (up to 25MB)
+// Configure multer for memory storage file uploads (up to 25MB per file)
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
@@ -20,9 +20,9 @@ router.use(requireAdmin);
 
 /**
  * POST /api/admin/knowledge/documents
- * Upload document file and process into knowledge base
+ * Upload single or batch document files and process into knowledge base
  */
-router.post('/documents', upload.single('file'), (req, res) => controller.uploadDocument(req, res));
+router.post('/documents', upload.any(), (req, res) => controller.uploadDocument(req, res));
 
 /**
  * GET /api/admin/knowledge/documents

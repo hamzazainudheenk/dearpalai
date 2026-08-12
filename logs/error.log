@@ -2,3 +2,4 @@
 {"conversationId":"74584a65-c65e-48b2-a587-5b05e3d985c4","error":"Request failed with status code 401","level":"error","message":"Failed to send reply","messageId":"wamid.test123","service":"dearpal-whatsapp","timestamp":"2026-07-24 06:57:37.677"}
 {"error":"Empty response content received from Sarvam 105B API","level":"error","message":"Sarvam 105B generation failed","service":"dearpal-whatsapp","timestamp":"2026-08-11 22:31:12.110"}
 {"error":"Empty response content received from Sarvam 105B API (finish_reason: length)","level":"error","message":"Sarvam 105B generation failed","service":"dearpal-whatsapp","timestamp":"2026-08-11 22:32:29.187"}
+{"documentId":"79dea952-d7c6-4f6d-b052-46f756b8832c","error":"Failed to download file from Supabase Storage: Object not found","level":"error","message":"Document processing pipeline failed","service":"dearpal-whatsapp","timestamp":"2026-08-12 06:26:49.620"}

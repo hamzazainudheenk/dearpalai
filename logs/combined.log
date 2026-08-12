@@ -441,3 +441,78 @@
 {"conversationId":"4989db38-23b4-45e0-9d60-f20383a5ee7b","level":"info","message":"Reply sent via WhatsAppService","messageId":"wamid.test_ood_1786494258791","replyLength":91,"service":"dearpal-whatsapp","timestamp":"2026-08-12 05:54:19.633"}
 {"cleanPhone":"919876543210","level":"info","message":"Synced conversation to Supabase","patientId":null,"service":"dearpal-whatsapp","timestamp":"2026-08-12 05:54:19.860"}
 {"conversationId":"4989db38-23b4-45e0-9d60-f20383a5ee7b","level":"info","message":"Message processing complete","messageId":"wamid.test_ood_1786494258791","service":"dearpal-whatsapp","source":"fallback","success":true,"timestamp":"2026-08-12 05:54:19.860"}
+{"documentId":"79dea952-d7c6-4f6d-b052-46f756b8832c","fileName":"Batch_Test_01_Anxiety_Management.txt","level":"info","message":"Uploading knowledge document to storage","service":"dearpal-whatsapp","size":229,"storagePath":"documents/79dea952-d7c6-4f6d-b052-46f756b8832c/Batch_Test_01_Anxiety_Management.txt","timestamp":"2026-08-12 06:26:24.101"}
+{"documentId":"79dea952-d7c6-4f6d-b052-46f756b8832c","fileName":"Batch_Test_01_Anxiety_Management.txt","level":"info","message":"Starting document processing pipeline","service":"dearpal-whatsapp","storagePath":"documents/79dea952-d7c6-4f6d-b052-46f756b8832c/Batch_Test_01_Anxiety_Management.txt","timestamp":"2026-08-12 06:26:24.657"}
+{"documentId":"c3d628d9-a90e-450b-9d5a-5181dae37ebc","fileName":"Batch_Test_02_Depression_Protocols.txt","level":"info","message":"Uploading knowledge document to storage","service":"dearpal-whatsapp","size":193,"storagePath":"documents/c3d628d9-a90e-450b-9d5a-5181dae37ebc/Batch_Test_02_Depression_Protocols.txt","timestamp":"2026-08-12 06:26:24.739"}
+{"ext":"txt","fileName":"Batch_Test_01_Anxiety_Management.txt","level":"info","message":"Extracting text from document","mimeType":"text/plain","service":"dearpal-whatsapp","size":229,"timestamp":"2026-08-12 06:26:24.824"}
+{"level":"info","message":"Text chunking complete","service":"dearpal-whatsapp","timestamp":"2026-08-12 06:26:24.825","totalChars":229,"totalChunks":101}
+{"level":"info","message":"Generating 101 embeddings with Xenova/all-MiniLM-L6-v2...","service":"dearpal-whatsapp","timestamp":"2026-08-12 06:26:24.826"}
+{"level":"info","message":"Initializing local embedding model 'Xenova/all-MiniLM-L6-v2'...","service":"dearpal-whatsapp","timestamp":"2026-08-12 06:26:24.827"}
+{"documentId":"c3d628d9-a90e-450b-9d5a-5181dae37ebc","fileName":"Batch_Test_02_Depression_Protocols.txt","level":"info","message":"Starting document processing pipeline","service":"dearpal-whatsapp","storagePath":"documents/c3d628d9-a90e-450b-9d5a-5181dae37ebc/Batch_Test_02_Depression_Protocols.txt","timestamp":"2026-08-12 06:26:28.825"}
+{"ext":"txt","fileName":"Batch_Test_02_Depression_Protocols.txt","level":"info","message":"Extracting text from document","mimeType":"text/plain","service":"dearpal-whatsapp","size":193,"timestamp":"2026-08-12 06:26:28.894"}
+{"level":"info","message":"Text chunking complete","service":"dearpal-whatsapp","timestamp":"2026-08-12 06:26:28.897","totalChars":193,"totalChunks":101}
+{"level":"info","message":"Generating 101 embeddings with Xenova/all-MiniLM-L6-v2...","service":"dearpal-whatsapp","timestamp":"2026-08-12 06:26:28.897"}
+{"documentId":"e03890b7-a8b6-4770-bc14-e00705b9e1dc","fileName":"Batch_Test_03_Sleep_Hygiene_Guide.txt","level":"info","message":"Uploading knowledge document to storage","service":"dearpal-whatsapp","size":221,"storagePath":"documents/e03890b7-a8b6-4770-bc14-e00705b9e1dc/Batch_Test_03_Sleep_Hygiene_Guide.txt","timestamp":"2026-08-12 06:26:28.925"}
+{"level":"info","message":"Local embedding model 'Xenova/all-MiniLM-L6-v2' loaded successfully","service":"dearpal-whatsapp","timestamp":"2026-08-12 06:26:29.233"}
+{"documentId":"e03890b7-a8b6-4770-bc14-e00705b9e1dc","fileName":"Batch_Test_03_Sleep_Hygiene_Guide.txt","level":"info","message":"Starting document processing pipeline","service":"dearpal-whatsapp","storagePath":"documents/e03890b7-a8b6-4770-bc14-e00705b9e1dc/Batch_Test_03_Sleep_Hygiene_Guide.txt","timestamp":"2026-08-12 06:26:29.394"}
+{"documentId":"c114afbe-24f7-4573-82e2-bb39b54da3b7","fileName":"Batch_Test_04_Stress_Reduction_CBT.txt","level":"info","message":"Uploading knowledge document to storage","service":"dearpal-whatsapp","size":205,"storagePath":"documents/c114afbe-24f7-4573-82e2-bb39b54da3b7/Batch_Test_04_Stress_Reduction_CBT.txt","timestamp":"2026-08-12 06:26:29.473"}
+{"ext":"txt","fileName":"Batch_Test_03_Sleep_Hygiene_Guide.txt","level":"info","message":"Extracting text from document","mimeType":"text/plain","service":"dearpal-whatsapp","size":221,"timestamp":"2026-08-12 06:26:29.496"}
+{"level":"info","message":"Text chunking complete","service":"dearpal-whatsapp","timestamp":"2026-08-12 06:26:29.497","totalChars":221,"totalChunks":101}
+{"level":"info","message":"Generating 101 embeddings with Xenova/all-MiniLM-L6-v2...","service":"dearpal-whatsapp","timestamp":"2026-08-12 06:26:29.497"}
+{"chunksCount":101,"documentId":"c3d628d9-a90e-450b-9d5a-5181dae37ebc","level":"info","message":"Document processing pipeline completed successfully","service":"dearpal-whatsapp","timestamp":"2026-08-12 06:26:30.254"}
+{"documentId":"c114afbe-24f7-4573-82e2-bb39b54da3b7","fileName":"Batch_Test_04_Stress_Reduction_CBT.txt","level":"info","message":"Starting document processing pipeline","service":"dearpal-whatsapp","storagePath":"documents/c114afbe-24f7-4573-82e2-bb39b54da3b7/Batch_Test_04_Stress_Reduction_CBT.txt","timestamp":"2026-08-12 06:26:30.269"}
+{"ext":"txt","fileName":"Batch_Test_04_Stress_Reduction_CBT.txt","level":"info","message":"Extracting text from document","mimeType":"text/plain","service":"dearpal-whatsapp","size":205,"timestamp":"2026-08-12 06:26:30.334"}
+{"level":"info","message":"Text chunking complete","service":"dearpal-whatsapp","timestamp":"2026-08-12 06:26:30.335","totalChars":205,"totalChunks":101}
+{"level":"info","message":"Generating 101 embeddings with Xenova/all-MiniLM-L6-v2...","service":"dearpal-whatsapp","timestamp":"2026-08-12 06:26:30.336"}
+{"documentId":"547a8f45-b3ca-42bb-86f4-18f796c7602a","fileName":"Batch_Test_05_Crisis_Deescalation.txt","level":"info","message":"Uploading knowledge document to storage","service":"dearpal-whatsapp","size":210,"storagePath":"documents/547a8f45-b3ca-42bb-86f4-18f796c7602a/Batch_Test_05_Crisis_Deescalation.txt","timestamp":"2026-08-12 06:26:30.860"}
+{"chunksCount":101,"documentId":"e03890b7-a8b6-4770-bc14-e00705b9e1dc","level":"info","message":"Document processing pipeline completed successfully","service":"dearpal-whatsapp","timestamp":"2026-08-12 06:26:30.946"}
+{"chunksCount":101,"documentId":"79dea952-d7c6-4f6d-b052-46f756b8832c","level":"info","message":"Document processing pipeline completed successfully","service":"dearpal-whatsapp","timestamp":"2026-08-12 06:26:31.022"}
+{"documentId":"547a8f45-b3ca-42bb-86f4-18f796c7602a","fileName":"Batch_Test_05_Crisis_Deescalation.txt","level":"info","message":"Starting document processing pipeline","service":"dearpal-whatsapp","storagePath":"documents/547a8f45-b3ca-42bb-86f4-18f796c7602a/Batch_Test_05_Crisis_Deescalation.txt","timestamp":"2026-08-12 06:26:31.066"}
+{"ext":"txt","fileName":"Batch_Test_05_Crisis_Deescalation.txt","level":"info","message":"Extracting text from document","mimeType":"text/plain","service":"dearpal-whatsapp","size":210,"timestamp":"2026-08-12 06:26:31.129"}
+{"level":"info","message":"Text chunking complete","service":"dearpal-whatsapp","timestamp":"2026-08-12 06:26:31.129","totalChars":210,"totalChunks":101}
+{"level":"info","message":"Generating 101 embeddings with Xenova/all-MiniLM-L6-v2...","service":"dearpal-whatsapp","timestamp":"2026-08-12 06:26:31.130"}
+{"chunksCount":101,"documentId":"c114afbe-24f7-4573-82e2-bb39b54da3b7","level":"info","message":"Document processing pipeline completed successfully","service":"dearpal-whatsapp","timestamp":"2026-08-12 06:26:31.809"}
+{"chunksCount":101,"documentId":"547a8f45-b3ca-42bb-86f4-18f796c7602a","level":"info","message":"Document processing pipeline completed successfully","service":"dearpal-whatsapp","timestamp":"2026-08-12 06:26:32.360"}
+{"level":"info","message":"Vector search started","queryLength":46,"service":"dearpal-whatsapp","threshold":0.2,"timestamp":"2026-08-12 06:26:46.513","topK":3}
+{"level":"info","message":"Initializing local embedding model 'Xenova/all-MiniLM-L6-v2'...","service":"dearpal-whatsapp","timestamp":"2026-08-12 06:26:46.514"}
+{"level":"info","message":"Local embedding model 'Xenova/all-MiniLM-L6-v2' loaded successfully","service":"dearpal-whatsapp","timestamp":"2026-08-12 06:26:46.954"}
+{"dimensions":384,"level":"info","message":"Query embedding generated","model":"Xenova/all-MiniLM-L6-v2","service":"dearpal-whatsapp","timestamp":"2026-08-12 06:26:46.970"}
+{"level":"info","message":"Number of approved documents available: 6","service":"dearpal-whatsapp","timestamp":"2026-08-12 06:26:47.038"}
+{"level":"info","message":"Vector search completed","numberOfResults":3,"service":"dearpal-whatsapp","timestamp":"2026-08-12 06:26:47.191","topSimilarityScore":0.7393}
+{"level":"info","message":"Vector search started","queryLength":55,"service":"dearpal-whatsapp","threshold":0.2,"timestamp":"2026-08-12 06:26:47.193","topK":3}
+{"dimensions":384,"level":"info","message":"Query embedding generated","model":"Xenova/all-MiniLM-L6-v2","service":"dearpal-whatsapp","timestamp":"2026-08-12 06:26:47.221"}
+{"level":"info","message":"Number of approved documents available: 6","service":"dearpal-whatsapp","timestamp":"2026-08-12 06:26:47.371"}
+{"level":"info","message":"Vector search completed","numberOfResults":3,"service":"dearpal-whatsapp","timestamp":"2026-08-12 06:26:47.444","topSimilarityScore":0.6625}
+{"level":"info","message":"Vector search started","queryLength":59,"service":"dearpal-whatsapp","threshold":0.2,"timestamp":"2026-08-12 06:26:47.446","topK":3}
+{"dimensions":384,"level":"info","message":"Query embedding generated","model":"Xenova/all-MiniLM-L6-v2","service":"dearpal-whatsapp","timestamp":"2026-08-12 06:26:47.471"}
+{"level":"info","message":"Number of approved documents available: 6","service":"dearpal-whatsapp","timestamp":"2026-08-12 06:26:47.614"}
+{"level":"info","message":"Vector search completed","numberOfResults":3,"service":"dearpal-whatsapp","timestamp":"2026-08-12 06:26:47.679","topSimilarityScore":0.7151}
+{"level":"info","message":"RAG query started","queryLength":48,"service":"dearpal-whatsapp","timestamp":"2026-08-12 06:26:47.682","topK":5}
+{"level":"info","message":"Vector search started","queryLength":48,"service":"dearpal-whatsapp","threshold":0.3,"timestamp":"2026-08-12 06:26:47.682","topK":5}
+{"level":"info","message":"Initializing local embedding model 'Xenova/all-MiniLM-L6-v2'...","service":"dearpal-whatsapp","timestamp":"2026-08-12 06:26:47.683"}
+{"level":"info","message":"Local embedding model 'Xenova/all-MiniLM-L6-v2' loaded successfully","service":"dearpal-whatsapp","timestamp":"2026-08-12 06:26:48.163"}
+{"dimensions":384,"level":"info","message":"Query embedding generated","model":"Xenova/all-MiniLM-L6-v2","service":"dearpal-whatsapp","timestamp":"2026-08-12 06:26:48.184"}
+{"level":"info","message":"Number of approved documents available: 6","service":"dearpal-whatsapp","timestamp":"2026-08-12 06:26:48.339"}
+{"level":"info","message":"Vector search completed","numberOfResults":5,"service":"dearpal-whatsapp","timestamp":"2026-08-12 06:26:48.403","topSimilarityScore":0.6925}
+{"level":"info","message":"Number of chunks retrieved: 5","service":"dearpal-whatsapp","timestamp":"2026-08-12 06:26:48.403"}
+{"level":"info","message":"Top similarity score: 0.6925","service":"dearpal-whatsapp","timestamp":"2026-08-12 06:26:48.404"}
+{"estimatedContextTokens":141,"level":"info","message":"Context built","numberOfChunks":5,"service":"dearpal-whatsapp","systemPromptLength":995,"timestamp":"2026-08-12 06:26:48.405","totalContextChars":564,"userQuestionLength":48}
+{"level":"info","message":"Sarvam 105B request started","service":"dearpal-whatsapp","timestamp":"2026-08-12 06:26:48.405"}
+{"level":"info","maxTokens":2048,"message":"Calling Sarvam 105B Custom Completion","service":"dearpal-whatsapp","temperature":0.3,"timestamp":"2026-08-12 06:26:48.406","userMessageLength":648}
+{"completionTokens":48,"finishReason":"stop","level":"info","message":"Sarvam 105B Custom Completion complete","promptTokens":372,"reasoningLength":0,"responseLength":205,"service":"dearpal-whatsapp","timestamp":"2026-08-12 06:26:48.995"}
+{"level":"info","message":"Sarvam response received","service":"dearpal-whatsapp","timestamp":"2026-08-12 06:26:48.995"}
+{"level":"info","message":"RAG generation completed","service":"dearpal-whatsapp","timestamp":"2026-08-12 06:26:48.996"}
+{"id":"79dea952-d7c6-4f6d-b052-46f756b8832c","level":"info","message":"Reprocessing knowledge document","service":"dearpal-whatsapp","timestamp":"2026-08-12 06:26:48.997"}
+{"id":"79dea952-d7c6-4f6d-b052-46f756b8832c","level":"info","message":"Deleting knowledge document","service":"dearpal-whatsapp","timestamp":"2026-08-12 06:26:49.158"}
+{"documentId":"79dea952-d7c6-4f6d-b052-46f756b8832c","fileName":"Batch_Test_01_Anxiety_Management.txt","level":"info","message":"Starting document processing pipeline","service":"dearpal-whatsapp","storagePath":"documents/79dea952-d7c6-4f6d-b052-46f756b8832c/Batch_Test_01_Anxiety_Management.txt","timestamp":"2026-08-12 06:26:49.160"}
+{"level":"info","message":"Downloading file from Supabase Storage for processing","service":"dearpal-whatsapp","storagePath":"documents/79dea952-d7c6-4f6d-b052-46f756b8832c/Batch_Test_01_Anxiety_Management.txt","timestamp":"2026-08-12 06:26:49.265"}
+{"documentId":"79dea952-d7c6-4f6d-b052-46f756b8832c","error":"Failed to download file from Supabase Storage: Object not found","level":"error","message":"Document processing pipeline failed","service":"dearpal-whatsapp","timestamp":"2026-08-12 06:26:49.620"}
+{"id":"79dea952-d7c6-4f6d-b052-46f756b8832c","level":"info","message":"Knowledge document deleted successfully","service":"dearpal-whatsapp","timestamp":"2026-08-12 06:26:49.644"}
+{"id":"c3d628d9-a90e-450b-9d5a-5181dae37ebc","level":"info","message":"Deleting knowledge document","service":"dearpal-whatsapp","timestamp":"2026-08-12 06:26:49.644"}
+{"id":"c3d628d9-a90e-450b-9d5a-5181dae37ebc","level":"info","message":"Knowledge document deleted successfully","service":"dearpal-whatsapp","timestamp":"2026-08-12 06:26:50.210"}
+{"id":"e03890b7-a8b6-4770-bc14-e00705b9e1dc","level":"info","message":"Deleting knowledge document","service":"dearpal-whatsapp","timestamp":"2026-08-12 06:26:50.211"}
+{"id":"e03890b7-a8b6-4770-bc14-e00705b9e1dc","level":"info","message":"Knowledge document deleted successfully","service":"dearpal-whatsapp","timestamp":"2026-08-12 06:26:50.727"}
+{"id":"c114afbe-24f7-4573-82e2-bb39b54da3b7","level":"info","message":"Deleting knowledge document","service":"dearpal-whatsapp","timestamp":"2026-08-12 06:26:50.727"}
+{"id":"c114afbe-24f7-4573-82e2-bb39b54da3b7","level":"info","message":"Knowledge document deleted successfully","service":"dearpal-whatsapp","timestamp":"2026-08-12 06:26:51.428"}
+{"id":"547a8f45-b3ca-42bb-86f4-18f796c7602a","level":"info","message":"Deleting knowledge document","service":"dearpal-whatsapp","timestamp":"2026-08-12 06:26:51.428"}
+{"id":"547a8f45-b3ca-42bb-86f4-18f796c7602a","level":"info","message":"Knowledge document deleted successfully","service":"dearpal-whatsapp","timestamp":"2026-08-12 06:26:51.903"}
