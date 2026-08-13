@@ -12,14 +12,16 @@ export interface IEmbeddingProvider {
 }
 
 /**
- * Free local ONNX Transformer Embedding Provider (`Xenova/all-MiniLM-L6-v2`).
- * Generates real 384-dimensional vector embeddings locally in Node.js memory ($0 cost, 0 API keys).
+ * Free local Multilingual ONNX Transformer Embedding Provider (`BAAI/bge-m3`).
+ * Generates 1024-dimensional dense vector embeddings locally in Node.js memory ($0 cost, 0 API keys).
+ * Enables cross-lingual vector retrieval (e.g. Malayalam questions matching English knowledge documents).
  */
 export class TransformersEmbeddingProvider implements IEmbeddingProvider {
   private pipelineInstance: any = null;
   private isInitializing = false;
-  private readonly modelName = 'Xenova/all-MiniLM-L6-v2';
-  private readonly dimensions = 384;
+  private readonly modelName = 'BAAI/bge-m3';
+  private readonly onnxModelId = 'Xenova/bge-m3';
+  private readonly dimensions = 1024;
 
   private async getPipeline() {
     if (this.pipelineInstance) return this.pipelineInstance;
@@ -27,10 +29,10 @@ export class TransformersEmbeddingProvider implements IEmbeddingProvider {
     if (!this.isInitializing) {
       this.isInitializing = true;
       try {
-        logger.info(`Initializing local embedding model '${this.modelName}'...`);
+        logger.info(`Initializing local multilingual embedding model '${this.modelName}' (${this.dimensions}-dim)...`);
         const { pipeline } = await import('@xenova/transformers');
-        this.pipelineInstance = await pipeline('feature-extraction', this.modelName);
-        logger.info(`Local embedding model '${this.modelName}' loaded successfully`);
+        this.pipelineInstance = await pipeline('feature-extraction', this.onnxModelId);
+        logger.info(`Local multilingual embedding model '${this.modelName}' loaded successfully`);
       } catch (err) {
         logger.warn('Failed to load @xenova/transformers pipeline, using fallback vector generator', {
           error: (err as Error).message,
@@ -43,7 +45,7 @@ export class TransformersEmbeddingProvider implements IEmbeddingProvider {
   }
 
   /**
-   * Generates a 384-dimensional vector embedding for text.
+   * Generates a 1024-dimensional vector embedding for text using BAAI/bge-m3.
    */
   async generateEmbedding(text: string): Promise<EmbeddingResult> {
     const pipe = await this.getPipeline();
@@ -64,7 +66,7 @@ export class TransformersEmbeddingProvider implements IEmbeddingProvider {
       }
     }
 
-    // Fallback 384-dim normalized feature vector
+    // Fallback 1024-dim normalized feature vector
     const vector: number[] = [];
     for (let i = 0; i < this.dimensions; i++) {
       const charCode = text.charCodeAt(i % text.length) || 0;

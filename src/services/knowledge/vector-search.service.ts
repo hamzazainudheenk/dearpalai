@@ -24,7 +24,7 @@ export class VectorSearchService {
 
   /**
    * Performs vector similarity retrieval for a patient/user question:
-   * Patient Question → Query Embedding → pgvector Similarity Search → Relevant Chunks
+   * Patient Question (Malayalam / English / Mixed) → BGE-M3 Query Embedding → pgvector Similarity Search → Relevant English Chunks
    */
   async searchSimilarChunks(
     queryText: string,
@@ -40,17 +40,18 @@ export class VectorSearchService {
 
     logger.info('Vector search started', { queryLength: trimmedQuery.length, topK, threshold });
 
-    // 1. Generate query embedding using Xenova/all-MiniLM-L6-v2
+    // 1. Generate query embedding using BAAI/bge-m3 (1024 dimensions)
     const embeddingResult = await this.embeddingService.getEmbedding(trimmedQuery);
     const queryEmbedding = embeddingResult.embedding;
 
-    // 2. Validate embedding dimensions
-    if (!queryEmbedding || queryEmbedding.length !== 384) {
+    // 2. Validate embedding dimensions (1024-dim target for BGE-M3)
+    const targetDimensions = aiConfig.embedding.dimensions;
+    if (!queryEmbedding || queryEmbedding.length !== targetDimensions) {
       logger.error('Query embedding dimension mismatch', {
-        expected: 384,
+        expected: targetDimensions,
         received: queryEmbedding?.length,
       });
-      throw new Error(`Embedding dimension mismatch: expected 384, received ${queryEmbedding?.length || 0}`);
+      throw new Error(`Embedding dimension mismatch: expected ${targetDimensions}, received ${queryEmbedding?.length || 0}`);
     }
 
     logger.info('Query embedding generated', {
