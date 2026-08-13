@@ -30,12 +30,12 @@ export const aiConfig = {
     temperature: parseFloat(optionalEnv('OPENAI_TEMPERATURE', '0.7')),
   },
 
-  /** Multilingual Embedding configuration (BAAI/bge-m3, 1024 dimensions) */
+  /** Lightweight Multilingual Embedding configuration (intfloat/multilingual-e5-small, 384 dimensions) */
   embedding: {
     provider: optionalEnv('EMBEDDING_PROVIDER', 'xenova'),
-    model: optionalEnv('EMBEDDING_MODEL', 'BAAI/bge-m3'),
+    model: optionalEnv('EMBEDDING_MODEL', 'intfloat/multilingual-e5-small'),
     /** Multilingual embedding vector dimensions */
-    dimensions: parseInt(optionalEnv('EMBEDDING_DIMENSIONS', '1024'), 10),
+    dimensions: parseInt(optionalEnv('EMBEDDING_DIMENSIONS', '384'), 10),
   },
 
   /** Vector database configuration */
@@ -49,8 +49,8 @@ export const aiConfig = {
 
   /** RAG (Retrieval-Augmented Generation) configuration */
   rag: {
-    /** Minimum similarity score to consider a document relevant (0.3 for BGE-M3 cosine similarity) */
-    similarityThreshold: parseFloat(optionalEnv('RAG_SIMILARITY_THRESHOLD', '0.3')),
+    /** Minimum similarity score to consider a document relevant (0.80 for E5-small cosine similarity) */
+    similarityThreshold: parseFloat(optionalEnv('RAG_SIMILARITY_THRESHOLD', '0.80')),
     /** Maximum number of documents to retrieve */
     maxResults: parseInt(optionalEnv('RAG_MAX_RESULTS', '5'), 10),
     /** Whether to include source citations in responses */

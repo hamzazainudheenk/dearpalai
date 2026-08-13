@@ -23,7 +23,7 @@ export declare const aiConfig: {
         /** Temperature for completions */
         readonly temperature: number;
     };
-    /** Multilingual Embedding configuration (BAAI/bge-m3, 1024 dimensions) */
+    /** Lightweight Multilingual Embedding configuration (intfloat/multilingual-e5-small, 384 dimensions) */
     readonly embedding: {
         readonly provider: string;
         readonly model: string;
@@ -40,7 +40,7 @@ export declare const aiConfig: {
     };
     /** RAG (Retrieval-Augmented Generation) configuration */
     readonly rag: {
-        /** Minimum similarity score to consider a document relevant (0.3 for BGE-M3 cosine similarity) */
+        /** Minimum similarity score to consider a document relevant (0.80 for E5-small cosine similarity) */
         readonly similarityThreshold: number;
         /** Maximum number of documents to retrieve */
         readonly maxResults: number;
