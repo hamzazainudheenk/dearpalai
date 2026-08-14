@@ -24,7 +24,7 @@ export class VectorSearchService {
 
   /**
    * Performs vector similarity retrieval for a patient/user question:
-   * Patient Question (Malayalam / English / Mixed) → E5-small Query Embedding ("query: ...") → pgvector Similarity Search (384-dim) → Relevant English Chunks
+   * Patient Question (Malayalam / English / Mixed) → OpenAI text-embedding-3-small Query Embedding (384-dim) → pgvector Similarity Search → Relevant English Chunks
    */
   async searchSimilarChunks(
     queryText: string,
@@ -40,11 +40,11 @@ export class VectorSearchService {
 
     logger.info('Vector search started', { queryLength: trimmedQuery.length, topK, threshold });
 
-    // 1. Generate query embedding using intfloat/multilingual-e5-small (384 dimensions, "query: " prefix)
-    const embeddingResult = await this.embeddingService.getEmbedding(trimmedQuery, 'query');
+    // 1. Generate query embedding using OpenAI text-embedding-3-small (384 dimensions)
+    const embeddingResult = await this.embeddingService.getEmbedding(trimmedQuery);
     const queryEmbedding = embeddingResult.embedding;
 
-    // 2. Validate embedding dimensions (384-dim target for E5-small)
+    // 2. Validate embedding dimensions (384-dim target for OpenAI text-embedding-3-small)
     const targetDimensions = aiConfig.embedding.dimensions;
     if (!queryEmbedding || queryEmbedding.length !== targetDimensions) {
       logger.error('Query embedding dimension mismatch', {

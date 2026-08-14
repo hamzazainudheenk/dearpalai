@@ -1,7 +1,7 @@
 /**
  * AI Configuration
  *
- * Centralized configuration for all AI, Embedding, Vector DB, and RAG services.
+ * Centralized configuration for all AI, Embedding, Translation, Vector DB, and RAG services.
  * Loaded from environment variables with sensible defaults.
  */
 export declare const aiConfig: {
@@ -14,6 +14,13 @@ export declare const aiConfig: {
         /** Request timeout in milliseconds */
         readonly timeoutMs: number;
     };
+    /** Translation configuration (Sarvam Translate API) */
+    readonly translation: {
+        readonly provider: string;
+        readonly model: string;
+        readonly apiUrl: string;
+        readonly enabled: boolean;
+    };
     /** OpenAI / LLM configuration */
     readonly openai: {
         readonly apiKey: string;
@@ -23,7 +30,7 @@ export declare const aiConfig: {
         /** Temperature for completions */
         readonly temperature: number;
     };
-    /** Lightweight Multilingual Embedding configuration (intfloat/multilingual-e5-small, 384 dimensions) */
+    /** OpenAI Embedding API configuration (text-embedding-3-small, 384 dimensions) */
     readonly embedding: {
         readonly provider: string;
         readonly model: string;
@@ -40,7 +47,7 @@ export declare const aiConfig: {
     };
     /** RAG (Retrieval-Augmented Generation) configuration */
     readonly rag: {
-        /** Minimum similarity score to consider a document relevant (0.80 for E5-small cosine similarity) */
+        /** Minimum similarity score to consider a document relevant (0.3 default threshold for cosine similarity) */
         readonly similarityThreshold: number;
         /** Maximum number of documents to retrieve */
         readonly maxResults: number;

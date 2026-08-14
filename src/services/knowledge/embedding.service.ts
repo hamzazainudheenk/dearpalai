@@ -1,3 +1,4 @@
+import OpenAI from 'openai';
 import { logger } from '@utils/logger';
 import { aiConfig } from '@config/ai';
 
@@ -7,161 +8,173 @@ export interface EmbeddingResult {
   dimensions: number;
 }
 
-export type TextType = 'query' | 'passage';
-
 export interface IEmbeddingProvider {
-  generateEmbedding(text: string, type?: TextType): Promise<EmbeddingResult>;
-  generateBatchEmbeddings(texts: string[], type?: TextType): Promise<EmbeddingResult[]>;
+  generateEmbedding(text: string): Promise<EmbeddingResult>;
+  generateBatchEmbeddings(texts: string[]): Promise<EmbeddingResult[]>;
 }
 
 /**
- * Free local Multilingual ONNX Transformer Embedding Provider (`intfloat/multilingual-e5-small`).
- * Ultra-lightweight model (~100MB RAM footprint), optimized for Render 512MB RAM limit.
- * Generates 384-dimensional dense vector embeddings locally in Node.js memory ($0 cost, 0 API keys).
- * Supports E5 instruction prefixes ("query: " and "passage: ") for cross-lingual vector retrieval.
+ * OpenAI Cloud Embedding Provider (`text-embedding-3-small`).
+ * Offloads vector embedding generation to OpenAI API with 384 dimensions.
+ * Completely eliminates local ONNX model loading from Node memory, optimizing for Render 512MB RAM limit.
  */
-export class TransformersEmbeddingProvider implements IEmbeddingProvider {
-  private pipelineInstance: any = null;
-  private initializationPromise: Promise<any> | null = null;
+export class OpenAIEmbeddingProvider implements IEmbeddingProvider {
+  private client: OpenAI | null = null;
   private readonly modelName = aiConfig.embedding.model;
-  private readonly onnxModelId = 'Xenova/multilingual-e5-small';
   private readonly dimensions = aiConfig.embedding.dimensions;
 
-  /**
-   * Singleton promise-based pipeline initialization.
-   * Prevents concurrent requests from triggering multiple model downloads/initializations.
-   */
-  private async getPipeline() {
-    if (this.pipelineInstance) {
-      return this.pipelineInstance;
+  private getClient(): OpenAI {
+    if (this.client) {
+      return this.client;
     }
 
-    if (!this.initializationPromise) {
-      const startTime = Date.now();
-      logger.info('Embedding model initialization started', {
-        modelName: this.modelName,
-        onnxModelId: this.onnxModelId,
-        targetDimensions: this.dimensions,
-      });
-
-      this.initializationPromise = (async () => {
-        try {
-          const { pipeline } = await import('@xenova/transformers');
-          this.pipelineInstance = await pipeline('feature-extraction', this.onnxModelId);
-          const durationMs = Date.now() - startTime;
-          logger.info('Embedding model loaded', {
-            modelName: this.modelName,
-            onnxModelId: this.onnxModelId,
-            dimensions: this.dimensions,
-            durationMs,
-          });
-          return this.pipelineInstance;
-        } catch (err) {
-          logger.warn('Failed to load @xenova/transformers pipeline, using fallback vector generator', {
-            error: (err as Error).message,
-          });
-          this.pipelineInstance = null;
-          return null;
-        } finally {
-          this.initializationPromise = null;
-        }
-      })();
+    const apiKey = process.env.OPENAI_API_KEY || aiConfig.openai.apiKey;
+    if (!apiKey || apiKey.trim() === '' || apiKey.includes('your_openai_api_key_here')) {
+      logger.error('OPENAI_API_KEY environment variable is missing or invalid');
+      throw new Error('OPENAI_API_KEY environment variable is not configured. Cannot generate embeddings.');
     }
 
-    return this.initializationPromise;
+    this.client = new OpenAI({ apiKey: apiKey.trim() });
+    return this.client;
   }
 
   /**
-   * Generates a 384-dimensional vector embedding for text using intfloat/multilingual-e5-small.
-   * Enforces E5 instruction prefixes ("query: " vs "passage: ").
+   * Generates a 384-dimensional vector embedding using OpenAI API.
+   * Sends raw text directly to OpenAI API (without E5 query/passage prefixes).
    */
-  async generateEmbedding(text: string, type: TextType = 'passage'): Promise<EmbeddingResult> {
+  async generateEmbedding(text: string): Promise<EmbeddingResult> {
     const startTime = Date.now();
     const trimmed = text?.trim() || '';
     if (!trimmed) {
       throw new Error('Text to embed cannot be empty');
     }
 
-    // Apply E5 prefix rules: "query: " vs "passage: "
-    const prefixedText = type === 'query' ? `query: ${trimmed}` : `passage: ${trimmed}`;
-    const pipe = await this.getPipeline();
+    const openai = this.getClient();
 
-    let vector: number[] = [];
-
-    if (pipe) {
-      try {
-        const output = await pipe(prefixedText, { pooling: 'mean', normalize: true });
-        vector = Array.from(output.data) as number[];
-      } catch (err) {
-        logger.warn('Error running transformers pipeline, falling back to normalized feature vector', {
-          error: (err as Error).message,
-        });
-      }
-    }
-
-    if (vector.length === 0) {
-      // Fallback 384-dim normalized feature vector
-      const fallbackVec: number[] = [];
-      for (let i = 0; i < this.dimensions; i++) {
-        const charCode = prefixedText.charCodeAt(i % prefixedText.length) || 0;
-        fallbackVec.push(Math.sin(charCode * 0.13 + i * 0.07) * 0.5 + 0.5);
-      }
-      const magnitude = Math.sqrt(fallbackVec.reduce((sum, val) => sum + val * val, 0)) || 1;
-      vector = fallbackVec.map((v) => v / magnitude);
-    }
-
-    const finalEmbedding = vector.slice(0, this.dimensions);
-
-    // Dimension validation
-    if (finalEmbedding.length !== this.dimensions) {
-      logger.error('Embedding dimension mismatch', {
-        expected: this.dimensions,
-        received: finalEmbedding.length,
+    try {
+      const response = await openai.embeddings.create({
+        model: this.modelName,
+        input: trimmed,
+        dimensions: this.dimensions,
       });
-      throw new Error(`Embedding dimension mismatch: expected ${this.dimensions}, received ${finalEmbedding.length}`);
+
+      const vector = response.data[0]?.embedding;
+
+      // Validate returned vector dimension
+      if (!vector || vector.length !== this.dimensions) {
+        logger.error('Embedding dimension mismatch from OpenAI API', {
+          expected: this.dimensions,
+          received: vector?.length || 0,
+        });
+        throw new Error(`Embedding dimension mismatch: expected ${this.dimensions}, received ${vector?.length || 0}`);
+      }
+
+      const durationMs = Date.now() - startTime;
+      logger.info('OpenAI embedding generated', {
+        model: this.modelName,
+        dimensions: this.dimensions,
+        textLength: trimmed.length,
+        durationMs,
+        promptTokens: response.usage?.prompt_tokens,
+      });
+
+      return {
+        embedding: vector,
+        model: this.modelName,
+        dimensions: this.dimensions,
+      };
+    } catch (err: any) {
+      const errorMsg = err?.message || 'OpenAI API embedding request failed';
+      logger.error('OpenAI embedding generation failed', {
+        model: this.modelName,
+        status: err?.status,
+        code: err?.code,
+        error: errorMsg,
+      });
+      throw new Error(`OpenAI embedding failed: ${errorMsg}`);
     }
-
-    const durationMs = Date.now() - startTime;
-    logger.info('Embedding generated', {
-      model: this.modelName,
-      dimensions: this.dimensions,
-      type,
-      textLength: trimmed.length,
-      durationMs,
-    });
-
-    return {
-      embedding: finalEmbedding,
-      model: this.modelName,
-      dimensions: this.dimensions,
-    };
   }
 
-  async generateBatchEmbeddings(texts: string[], type: TextType = 'passage'): Promise<EmbeddingResult[]> {
-    logger.info(`Generating batch ${texts.length} embeddings (${type}) with ${this.modelName}...`);
-    const results: EmbeddingResult[] = [];
-    for (const t of texts) {
-      results.push(await this.generateEmbedding(t, type));
+  /**
+   * Generates 384-dimensional vector embeddings for a batch of texts using OpenAI API.
+   * Batching minimizes network overhead while enforcing safety limits.
+   */
+  async generateBatchEmbeddings(texts: string[]): Promise<EmbeddingResult[]> {
+    if (!texts || texts.length === 0) {
+      return [];
     }
+
+    const trimmedTexts = texts.map((t) => t?.trim() || '').filter((t) => t.length > 0);
+    if (trimmedTexts.length === 0) {
+      return [];
+    }
+
+    logger.info(`Generating batch ${trimmedTexts.length} embeddings with OpenAI ${this.modelName}...`);
+    const openai = this.getClient();
+    const results: EmbeddingResult[] = [];
+    const BATCH_SIZE = 50;
+
+    for (let i = 0; i < trimmedTexts.length; i += BATCH_SIZE) {
+      const batch = trimmedTexts.slice(i, i + BATCH_SIZE);
+      const startTime = Date.now();
+
+      try {
+        const response = await openai.embeddings.create({
+          model: this.modelName,
+          input: batch,
+          dimensions: this.dimensions,
+        });
+
+        const durationMs = Date.now() - startTime;
+        logger.info(`Batch embeddings generated (${i + 1}-${i + batch.length}/${trimmedTexts.length})`, {
+          model: this.modelName,
+          batchCount: batch.length,
+          dimensions: this.dimensions,
+          durationMs,
+          promptTokens: response.usage?.prompt_tokens,
+        });
+
+        for (const item of response.data) {
+          const vector = item.embedding;
+          if (!vector || vector.length !== this.dimensions) {
+            throw new Error(`Embedding dimension mismatch in batch item ${item.index}: expected ${this.dimensions}, received ${vector?.length || 0}`);
+          }
+          results[i + item.index] = {
+            embedding: vector,
+            model: this.modelName,
+            dimensions: this.dimensions,
+          };
+        }
+      } catch (err: any) {
+        const errorMsg = err?.message || 'OpenAI API batch embedding request failed';
+        logger.error('OpenAI batch embedding generation failed', {
+          batchStartIndex: i,
+          batchSize: batch.length,
+          error: errorMsg,
+        });
+        throw new Error(`OpenAI batch embedding failed: ${errorMsg}`);
+      }
+    }
+
     return results;
   }
 }
 
 export class EmbeddingService {
-  constructor(private provider: IEmbeddingProvider = new TransformersEmbeddingProvider()) {}
+  constructor(private provider: IEmbeddingProvider = new OpenAIEmbeddingProvider()) {}
 
-  async getEmbedding(text: string, type: TextType = 'passage'): Promise<EmbeddingResult> {
+  async getEmbedding(text: string): Promise<EmbeddingResult> {
     try {
-      return await this.provider.generateEmbedding(text, type);
+      return await this.provider.generateEmbedding(text);
     } catch (err) {
       logger.error('Failed to generate embedding', { error: (err as Error).message });
       throw err;
     }
   }
 
-  async getBatchEmbeddings(texts: string[], type: TextType = 'passage'): Promise<EmbeddingResult[]> {
+  async getBatchEmbeddings(texts: string[]): Promise<EmbeddingResult[]> {
     try {
-      return await this.provider.generateBatchEmbeddings(texts, type);
+      return await this.provider.generateBatchEmbeddings(texts);
     } catch (err) {
       logger.error('Failed to generate batch embeddings', { error: (err as Error).message });
       throw err;
