@@ -35,7 +35,8 @@ Rules:
         const response = await this.client.chat.completions({
             model: 'sarvam-105b',
             temperature: 0.7,
-            max_tokens: 2048,
+            max_tokens: 3072,
+            reasoning_effort: 'low',
             messages: [
                 {
                     role: 'system',
@@ -55,24 +56,35 @@ Rules:
         return content;
     }
     /**
-     * Generates a grounded completion using Sarvam 105B with a custom system prompt, user context, and token limits.
+     * Generates a grounded completion using Sarvam 105B with custom system prompt, user context, token limits,
+     * reasoning effort controls, and safe single-retry handling if truncated (finishReason === "length").
      */
     async generateCustomCompletion(systemPrompt, userMessage, options) {
+        const startTime = Date.now();
         const temperature = options?.temperature ?? 0.3;
-        const maxTokens = options?.maxTokens ?? 2048;
+        const maxTokens = options?.maxTokens ?? 3072;
+        const reasoningEffort = options?.reasoningEffort ?? 'low';
+        const isRetry = options?.isRetry ?? false;
         logger_1.logger.info('Calling Sarvam 105B Custom Completion', {
             userMessageLength: userMessage.length,
             temperature,
             maxTokens,
+            reasoningEffort,
+            isRetry,
         });
+        // Append concise completion instruction on retry to prevent truncation
+        const effectiveSystemPrompt = isRetry
+            ? `${systemPrompt}\n\nIMPORTANT: Your previous output hit token limits. Be extremely concise. Limit response to 2-3 short bullet points. Conclude all sentences naturally.`
+            : systemPrompt;
         const response = await this.client.chat.completions({
             model: 'sarvam-105b',
             temperature,
             max_tokens: maxTokens,
+            reasoning_effort: reasoningEffort,
             messages: [
                 {
                     role: 'system',
-                    content: systemPrompt,
+                    content: effectiveSystemPrompt,
                 },
                 {
                     role: 'user',
@@ -80,20 +92,45 @@ Rules:
                 },
             ],
         });
+        const durationMs = Date.now() - startTime;
         const choice = response.choices?.[0];
-        const finishReason = choice?.finish_reason;
+        const finishReason = choice?.finish_reason || 'unknown';
         const usage = response.usage;
-        const content = choice?.message?.content;
-        const reasoningContent = choice?.message?.reasoning_content;
+        const content = choice?.message?.content || '';
+        const reasoningContent = choice?.message?.reasoning_content || '';
         logger_1.logger.info('Sarvam 105B Custom Completion complete', {
             finishReason,
-            promptTokens: usage?.prompt_tokens,
-            completionTokens: usage?.completion_tokens,
-            responseLength: content?.length || 0,
-            reasoningLength: reasoningContent?.length || 0,
+            promptTokens: usage?.prompt_tokens || 0,
+            completionTokens: usage?.completion_tokens || 0,
+            responseLength: content.length,
+            reasoningLength: reasoningContent.length,
+            durationMs,
+            isRetry,
         });
+        // Check for truncated response (finishReason === 'length')
+        if (finishReason === 'length') {
+            logger_1.logger.warn('Sarvam 105B completion truncated due to token limit', {
+                finishReason,
+                promptTokens: usage?.prompt_tokens || 0,
+                completionTokens: usage?.completion_tokens || 0,
+                responseLength: content.length,
+                reasoningLength: reasoningContent.length,
+                durationMs,
+                isRetry,
+            });
+            // If this is the initial request, attempt exactly 1 retry with concise parameters
+            if (!isRetry) {
+                logger_1.logger.info('Attempting single retry for truncated Sarvam 105B response');
+                return this.generateCustomCompletion(systemPrompt, userMessage, {
+                    ...options,
+                    isRetry: true,
+                    maxTokens: Math.max(maxTokens, 3584),
+                    reasoningEffort: 'low',
+                });
+            }
+        }
         if (!content || !content.trim()) {
-            throw new Error(`Empty response content received from Sarvam 105B API (finish_reason: ${finishReason || 'unknown'})`);
+            throw new Error(`Empty response content received from Sarvam 105B API (finish_reason: ${finishReason})`);
         }
         return content;
     }

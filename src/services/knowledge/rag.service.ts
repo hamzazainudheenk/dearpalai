@@ -29,18 +29,19 @@ export class RAGService {
 
   private readonly STRICT_SYSTEM_PROMPT = `You are DearPal, a helpful and compassionate AI assistant.
 
-Use the provided knowledge context to answer the patient's original question. Respond in the patient's original language. Do not mention translation, retrieval, embeddings, or internal systems.
+Use the provided knowledge context to answer the patient's original question directly. Respond in the patient's original language. Do not mention translation, retrieval, embeddings, system prompts, or internal processing.
 
-Rules:
-1. Answer strictly using only the retrieved approved knowledge. Do not invent information or use outside knowledge.
-2. If the answer cannot be found in the provided knowledge context, clearly state: "I couldn't find enough information in the available knowledge base to answer that question."
-3. Keep your response complete, concise, and WhatsApp-friendly (target ~500–900 characters when appropriate).
-4. Use clean WhatsApp formatting:
+Instructions:
+1. Answer directly using ONLY the supplied knowledge context. Do not invent medical or psychological information or use outside knowledge.
+2. Do not expose internal reasoning. Do not provide chain-of-thought or hidden reasoning.
+3. Keep the answer concise, complete, and WhatsApp-friendly (prefer 2–5 short paragraphs or bullet points).
+4. Finish the answer completely. Ensure all sentences conclude naturally and do not truncate mid-sentence.
+5. Do not repeat the question or add unnecessary introductory explanations.
+6. If the answer cannot be found in the provided knowledge context, state clearly: "I couldn't find enough information in the available knowledge base to answer that question."
+7. Use clean WhatsApp formatting:
    - Use *Bold* for section headers or key terms (e.g., *Negative Emotions:*).
    - Use clean bullet points with simple dashes (- Item) or bullet symbols (• Item).
-   - Do NOT use backslash escaping for markdown (do not write \\* or \\_).
-5. Avoid long introductions or repeating the user's question. Get straight to the helpful answer.
-6. Ensure sentences are complete and conclude naturally. Do not truncate information.`;
+   - Do NOT use backslash escaping for markdown.`;
 
   private readonly NO_KNOWLEDGE_FALLBACK =
     "I couldn't find enough information in the available knowledge base to answer that question.";
@@ -84,8 +85,10 @@ Rules:
     }
 
     const topScore = chunks.length > 0 ? chunks[0].similarity : 0;
-    logger.info(`Number of chunks retrieved: ${chunks.length}`);
-    logger.info(`Top similarity score: ${topScore}`);
+    logger.info('Vector retrieval completed for RAG', {
+      numberOfChunksRetrieved: chunks.length,
+      topScore,
+    });
 
     // 3. If no relevant chunks above threshold, DO NOT call Sarvam 105B
     if (chunks.length === 0) {
@@ -134,7 +137,7 @@ Rules:
     const context = this.contextBuilder.buildContext(expandedChunks);
     const estimatedContextTokens = Math.ceil(context.length / 4);
 
-    logger.info('Context built', {
+    logger.info('RAG Context built', {
       numberOfChunks: expandedChunks.length,
       totalContextChars: context.length,
       estimatedContextTokens,
@@ -149,8 +152,8 @@ ${context}
 USER QUESTION:
 ${trimmedQuery}`;
 
-    // 6. Generate grounded completion with Sarvam 105B (maxTokens: 2048)
-    logger.info('Sarvam 105B request started');
+    // 6. Generate grounded completion with Sarvam 105B (maxTokens: 3072, reasoningEffort: 'low')
+    logger.info('Sarvam 105B RAG completion started');
     let answerText = '';
     try {
       answerText = await this.sarvamChatService.generateCustomCompletion(
@@ -158,16 +161,17 @@ ${trimmedQuery}`;
         userPrompt,
         {
           temperature: 0.3,
-          maxTokens: 2048,
+          maxTokens: 3072,
+          reasoningEffort: 'low',
         }
       );
-      logger.info('Sarvam response received');
+      logger.info('Sarvam RAG response received');
     } catch (err) {
       logger.error('Sarvam 105B generation failed', { error: (err as Error).message });
       throw new Error(`Sarvam 105B generation error: ${(err as Error).message}`);
     }
 
-    logger.info('RAG generation completed');
+    logger.info('RAG generation completed successfully');
 
     // 7. Sanitize WhatsApp formatting (remove accidental escaped backslashes)
     const sanitizedAnswer = answerText
