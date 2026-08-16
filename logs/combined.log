@@ -2564,3 +2564,110 @@
 {"completionTokens":357,"durationMs":2044,"finishReason":"stop","isRetry":false,"level":"info","message":"Sarvam 105B Custom Completion complete","promptTokens":597,"reasoningLength":1681,"responseLength":91,"service":"dearpal-whatsapp","timestamp":"2026-08-16 06:49:15.581"}
 {"level":"info","message":"Sarvam RAG response received","service":"dearpal-whatsapp","timestamp":"2026-08-16 06:49:15.581"}
 {"level":"info","message":"RAG generation completed successfully","service":"dearpal-whatsapp","timestamp":"2026-08-16 06:49:15.581"}
+{"level":"info","message":"Vector search started","queryLength":35,"service":"dearpal-whatsapp","threshold":0.3,"timestamp":"2026-08-16 22:26:14.830","topK":5}
+{"dimensions":384,"durationMs":3840,"level":"info","message":"OpenAI embedding generated","model":"text-embedding-3-small","promptTokens":9,"service":"dearpal-whatsapp","textLength":35,"timestamp":"2026-08-16 22:26:18.678"}
+{"dimensions":384,"level":"info","message":"Query embedding generated","model":"text-embedding-3-small","service":"dearpal-whatsapp","timestamp":"2026-08-16 22:26:18.681"}
+{"level":"info","message":"Number of approved documents available: 1","service":"dearpal-whatsapp","timestamp":"2026-08-16 22:26:18.962"}
+{"level":"info","message":"Vector search completed","numberOfResults":5,"service":"dearpal-whatsapp","timestamp":"2026-08-16 22:26:19.205","topSimilarityScore":0.4309}
+{"durationMs":627,"isTranslated":true,"level":"info","message":"Query translation completed","originalTextLength":49,"retrievalTextLength":24,"service":"dearpal-whatsapp","sourceLanguage":"ml","timestamp":"2026-08-16 22:28:01.892"}
+{"isTranslated":true,"level":"info","message":"RAG query started","originalTextLength":49,"retrievalTextLength":24,"service":"dearpal-whatsapp","sourceLanguage":"ml","threshold":0.3,"timestamp":"2026-08-16 22:28:01.899","topK":5}
+{"level":"info","message":"Vector search started","queryLength":24,"service":"dearpal-whatsapp","threshold":0.3,"timestamp":"2026-08-16 22:28:01.900","topK":5}
+{"dimensions":384,"durationMs":1335,"level":"info","message":"OpenAI embedding generated","model":"text-embedding-3-small","promptTokens":7,"service":"dearpal-whatsapp","textLength":24,"timestamp":"2026-08-16 22:28:03.236"}
+{"dimensions":384,"level":"info","message":"Query embedding generated","model":"text-embedding-3-small","service":"dearpal-whatsapp","timestamp":"2026-08-16 22:28:03.237"}
+{"level":"info","message":"Number of approved documents available: 1","service":"dearpal-whatsapp","timestamp":"2026-08-16 22:28:03.681"}
+{"level":"info","message":"Vector search completed","numberOfResults":5,"service":"dearpal-whatsapp","timestamp":"2026-08-16 22:28:03.880","topSimilarityScore":0.4008}
+{"level":"info","message":"Vector retrieval completed for RAG","numberOfChunksRetrieved":5,"service":"dearpal-whatsapp","timestamp":"2026-08-16 22:28:03.881","topScore":0.4008}
+{"level":"info","message":"Sarvam 105B RAG completion started","service":"dearpal-whatsapp","timestamp":"2026-08-16 22:28:03.882"}
+{"isRetry":false,"level":"info","maxTokens":3072,"message":"Calling Sarvam 105B Custom Completion","reasoningEffort":"low","service":"dearpal-whatsapp","temperature":0.3,"timestamp":"2026-08-16 22:28:03.883","userMessageLength":3200}
+{"completionTokens":1747,"durationMs":13564,"finishReason":"stop","isRetry":false,"level":"info","message":"Sarvam 105B Custom Completion complete","promptTokens":3154,"reasoningLength":6577,"responseLength":468,"service":"dearpal-whatsapp","timestamp":"2026-08-16 22:28:17.447"}
+{"level":"info","message":"Sarvam RAG response received","service":"dearpal-whatsapp","timestamp":"2026-08-16 22:28:17.447"}
+{"level":"info","message":"RAG generation completed successfully","service":"dearpal-whatsapp","timestamp":"2026-08-16 22:28:17.448"}
+{"durationMs":317,"isTranslated":true,"level":"info","message":"Query translation completed","originalTextLength":44,"retrievalTextLength":31,"service":"dearpal-whatsapp","sourceLanguage":"mixed","timestamp":"2026-08-16 22:28:17.766"}
+{"isTranslated":true,"level":"info","message":"RAG query started","originalTextLength":44,"retrievalTextLength":31,"service":"dearpal-whatsapp","sourceLanguage":"mixed","threshold":0.3,"timestamp":"2026-08-16 22:28:17.767","topK":5}
+{"level":"info","message":"Vector search started","queryLength":31,"service":"dearpal-whatsapp","threshold":0.3,"timestamp":"2026-08-16 22:28:17.767","topK":5}
+{"dimensions":384,"durationMs":600,"level":"info","message":"OpenAI embedding generated","model":"text-embedding-3-small","promptTokens":9,"service":"dearpal-whatsapp","textLength":31,"timestamp":"2026-08-16 22:28:18.367"}
+{"dimensions":384,"level":"info","message":"Query embedding generated","model":"text-embedding-3-small","service":"dearpal-whatsapp","timestamp":"2026-08-16 22:28:18.368"}
+{"level":"info","message":"Number of approved documents available: 1","service":"dearpal-whatsapp","timestamp":"2026-08-16 22:28:18.550"}
+{"level":"info","message":"Vector search completed","numberOfResults":5,"service":"dearpal-whatsapp","timestamp":"2026-08-16 22:28:18.734","topSimilarityScore":0.5749}
+{"level":"info","message":"Vector retrieval completed for RAG","numberOfChunksRetrieved":5,"service":"dearpal-whatsapp","timestamp":"2026-08-16 22:28:18.735","topScore":0.5749}
+{"level":"info","message":"Sarvam 105B RAG completion started","service":"dearpal-whatsapp","timestamp":"2026-08-16 22:28:18.735"}
+{"isRetry":false,"level":"info","maxTokens":3072,"message":"Calling Sarvam 105B Custom Completion","reasoningEffort":"low","service":"dearpal-whatsapp","temperature":0.3,"timestamp":"2026-08-16 22:28:18.736","userMessageLength":3199}
+{"completionTokens":1701,"durationMs":12862,"finishReason":"stop","isRetry":false,"level":"info","message":"Sarvam 105B Custom Completion complete","promptTokens":3139,"reasoningLength":5919,"responseLength":283,"service":"dearpal-whatsapp","timestamp":"2026-08-16 22:28:31.597"}
+{"level":"info","message":"Sarvam RAG response received","service":"dearpal-whatsapp","timestamp":"2026-08-16 22:28:31.597"}
+{"level":"info","message":"RAG generation completed successfully","service":"dearpal-whatsapp","timestamp":"2026-08-16 22:28:31.598"}
+{"durationMs":346,"isTranslated":true,"level":"info","message":"Query translation completed","originalTextLength":47,"retrievalTextLength":51,"service":"dearpal-whatsapp","sourceLanguage":"mixed","timestamp":"2026-08-16 22:28:31.947"}
+{"isTranslated":true,"level":"info","message":"RAG query started","originalTextLength":47,"retrievalTextLength":51,"service":"dearpal-whatsapp","sourceLanguage":"mixed","threshold":0.3,"timestamp":"2026-08-16 22:28:31.948","topK":5}
+{"level":"info","message":"Vector search started","queryLength":51,"service":"dearpal-whatsapp","threshold":0.3,"timestamp":"2026-08-16 22:28:31.948","topK":5}
+{"dimensions":384,"durationMs":295,"level":"info","message":"OpenAI embedding generated","model":"text-embedding-3-small","promptTokens":13,"service":"dearpal-whatsapp","textLength":51,"timestamp":"2026-08-16 22:28:32.243"}
+{"dimensions":384,"level":"info","message":"Query embedding generated","model":"text-embedding-3-small","service":"dearpal-whatsapp","timestamp":"2026-08-16 22:28:32.243"}
+{"level":"info","message":"Number of approved documents available: 1","service":"dearpal-whatsapp","timestamp":"2026-08-16 22:28:32.369"}
+{"level":"info","message":"Vector search completed","numberOfResults":5,"service":"dearpal-whatsapp","timestamp":"2026-08-16 22:28:32.531","topSimilarityScore":0.4745}
+{"level":"info","message":"Vector retrieval completed for RAG","numberOfChunksRetrieved":5,"service":"dearpal-whatsapp","timestamp":"2026-08-16 22:28:32.531","topScore":0.4745}
+{"level":"info","message":"Sarvam 105B RAG completion started","service":"dearpal-whatsapp","timestamp":"2026-08-16 22:28:32.532"}
+{"isRetry":false,"level":"info","maxTokens":3072,"message":"Calling Sarvam 105B Custom Completion","reasoningEffort":"low","service":"dearpal-whatsapp","temperature":0.3,"timestamp":"2026-08-16 22:28:32.532","userMessageLength":3178}
+{"completionTokens":1787,"durationMs":11931,"finishReason":"stop","isRetry":false,"level":"info","message":"Sarvam 105B Custom Completion complete","promptTokens":3102,"reasoningLength":6744,"responseLength":312,"service":"dearpal-whatsapp","timestamp":"2026-08-16 22:28:44.463"}
+{"level":"info","message":"Sarvam RAG response received","service":"dearpal-whatsapp","timestamp":"2026-08-16 22:28:44.463"}
+{"level":"info","message":"RAG generation completed successfully","service":"dearpal-whatsapp","timestamp":"2026-08-16 22:28:44.464"}
+{"durationMs":291,"isTranslated":true,"level":"info","message":"Query translation completed","originalTextLength":23,"retrievalTextLength":15,"service":"dearpal-whatsapp","sourceLanguage":"mixed","timestamp":"2026-08-16 22:28:44.757"}
+{"isTranslated":true,"level":"info","message":"RAG query started","originalTextLength":23,"retrievalTextLength":15,"service":"dearpal-whatsapp","sourceLanguage":"mixed","threshold":0.3,"timestamp":"2026-08-16 22:28:44.757","topK":5}
+{"level":"info","message":"Vector search started","queryLength":15,"service":"dearpal-whatsapp","threshold":0.3,"timestamp":"2026-08-16 22:28:44.757","topK":5}
+{"dimensions":384,"durationMs":383,"level":"info","message":"OpenAI embedding generated","model":"text-embedding-3-small","promptTokens":4,"service":"dearpal-whatsapp","textLength":15,"timestamp":"2026-08-16 22:28:45.140"}
+{"dimensions":384,"level":"info","message":"Query embedding generated","model":"text-embedding-3-small","service":"dearpal-whatsapp","timestamp":"2026-08-16 22:28:45.141"}
+{"level":"info","message":"Number of approved documents available: 1","service":"dearpal-whatsapp","timestamp":"2026-08-16 22:28:45.265"}
+{"level":"info","message":"Vector search completed","numberOfResults":5,"service":"dearpal-whatsapp","timestamp":"2026-08-16 22:28:45.388","topSimilarityScore":0.4535}
+{"level":"info","message":"Vector retrieval completed for RAG","numberOfChunksRetrieved":5,"service":"dearpal-whatsapp","timestamp":"2026-08-16 22:28:45.389","topScore":0.4535}
+{"level":"info","message":"Sarvam 105B RAG completion started","service":"dearpal-whatsapp","timestamp":"2026-08-16 22:28:45.389"}
+{"isRetry":false,"level":"info","maxTokens":3072,"message":"Calling Sarvam 105B Custom Completion","reasoningEffort":"low","service":"dearpal-whatsapp","temperature":0.3,"timestamp":"2026-08-16 22:28:45.389","userMessageLength":3149}
+{"completionTokens":1104,"durationMs":8578,"finishReason":"stop","isRetry":false,"level":"info","message":"Sarvam 105B Custom Completion complete","promptTokens":3163,"reasoningLength":4112,"responseLength":187,"service":"dearpal-whatsapp","timestamp":"2026-08-16 22:28:53.967"}
+{"level":"info","message":"Sarvam RAG response received","service":"dearpal-whatsapp","timestamp":"2026-08-16 22:28:53.968"}
+{"level":"info","message":"RAG generation completed successfully","service":"dearpal-whatsapp","timestamp":"2026-08-16 22:28:53.968"}
+{"durationMs":343,"isTranslated":true,"level":"info","message":"Query translation completed","originalTextLength":38,"retrievalTextLength":31,"service":"dearpal-whatsapp","sourceLanguage":"mixed","timestamp":"2026-08-16 22:28:54.312"}
+{"isTranslated":true,"level":"info","message":"RAG query started","originalTextLength":38,"retrievalTextLength":31,"service":"dearpal-whatsapp","sourceLanguage":"mixed","threshold":0.3,"timestamp":"2026-08-16 22:28:54.312","topK":5}
+{"level":"info","message":"Vector search started","queryLength":31,"service":"dearpal-whatsapp","threshold":0.3,"timestamp":"2026-08-16 22:28:54.313","topK":5}
+{"dimensions":384,"durationMs":600,"level":"info","message":"OpenAI embedding generated","model":"text-embedding-3-small","promptTokens":7,"service":"dearpal-whatsapp","textLength":31,"timestamp":"2026-08-16 22:28:54.913"}
+{"dimensions":384,"level":"info","message":"Query embedding generated","model":"text-embedding-3-small","service":"dearpal-whatsapp","timestamp":"2026-08-16 22:28:54.913"}
+{"level":"info","message":"Number of approved documents available: 1","service":"dearpal-whatsapp","timestamp":"2026-08-16 22:28:55.107"}
+{"level":"info","message":"Vector search completed","numberOfResults":5,"service":"dearpal-whatsapp","timestamp":"2026-08-16 22:28:55.227","topSimilarityScore":0.5698}
+{"level":"info","message":"Vector retrieval completed for RAG","numberOfChunksRetrieved":5,"service":"dearpal-whatsapp","timestamp":"2026-08-16 22:28:55.228","topScore":0.5698}
+{"level":"info","message":"Sarvam 105B RAG completion started","service":"dearpal-whatsapp","timestamp":"2026-08-16 22:28:55.228"}
+{"isRetry":false,"level":"info","maxTokens":3072,"message":"Calling Sarvam 105B Custom Completion","reasoningEffort":"low","service":"dearpal-whatsapp","temperature":0.3,"timestamp":"2026-08-16 22:28:55.229","userMessageLength":3202}
+{"completionTokens":644,"durationMs":4329,"finishReason":"stop","isRetry":false,"level":"info","message":"Sarvam 105B Custom Completion complete","promptTokens":3147,"reasoningLength":2255,"responseLength":378,"service":"dearpal-whatsapp","timestamp":"2026-08-16 22:28:59.558"}
+{"level":"info","message":"Sarvam RAG response received","service":"dearpal-whatsapp","timestamp":"2026-08-16 22:28:59.558"}
+{"level":"info","message":"RAG generation completed successfully","service":"dearpal-whatsapp","timestamp":"2026-08-16 22:28:59.558"}
+{"durationMs":361,"isTranslated":true,"level":"info","message":"Query translation completed","originalTextLength":30,"retrievalTextLength":28,"service":"dearpal-whatsapp","sourceLanguage":"mixed","timestamp":"2026-08-16 22:28:59.920"}
+{"isTranslated":true,"level":"info","message":"RAG query started","originalTextLength":30,"retrievalTextLength":28,"service":"dearpal-whatsapp","sourceLanguage":"mixed","threshold":0.3,"timestamp":"2026-08-16 22:28:59.921","topK":5}
+{"level":"info","message":"Vector search started","queryLength":28,"service":"dearpal-whatsapp","threshold":0.3,"timestamp":"2026-08-16 22:28:59.921","topK":5}
+{"dimensions":384,"durationMs":421,"level":"info","message":"OpenAI embedding generated","model":"text-embedding-3-small","promptTokens":10,"service":"dearpal-whatsapp","textLength":28,"timestamp":"2026-08-16 22:29:00.342"}
+{"dimensions":384,"level":"info","message":"Query embedding generated","model":"text-embedding-3-small","service":"dearpal-whatsapp","timestamp":"2026-08-16 22:29:00.343"}
+{"level":"info","message":"Number of approved documents available: 1","service":"dearpal-whatsapp","timestamp":"2026-08-16 22:29:00.477"}
+{"level":"info","message":"Vector search completed","numberOfResults":5,"service":"dearpal-whatsapp","timestamp":"2026-08-16 22:29:00.602","topSimilarityScore":0.5162}
+{"level":"info","message":"Vector retrieval completed for RAG","numberOfChunksRetrieved":5,"service":"dearpal-whatsapp","timestamp":"2026-08-16 22:29:00.603","topScore":0.5162}
+{"level":"info","message":"Sarvam 105B RAG completion started","service":"dearpal-whatsapp","timestamp":"2026-08-16 22:29:00.603"}
+{"isRetry":false,"level":"info","maxTokens":3072,"message":"Calling Sarvam 105B Custom Completion","reasoningEffort":"low","service":"dearpal-whatsapp","temperature":0.3,"timestamp":"2026-08-16 22:29:00.603","userMessageLength":3244}
+{"completionTokens":1578,"durationMs":8898,"finishReason":"stop","isRetry":false,"level":"info","message":"Sarvam 105B Custom Completion complete","promptTokens":3196,"reasoningLength":5947,"responseLength":425,"service":"dearpal-whatsapp","timestamp":"2026-08-16 22:29:09.501"}
+{"level":"info","message":"Sarvam RAG response received","service":"dearpal-whatsapp","timestamp":"2026-08-16 22:29:09.502"}
+{"level":"info","message":"RAG generation completed successfully","service":"dearpal-whatsapp","timestamp":"2026-08-16 22:29:09.502"}
+{"level":"info","message":"Explicit exclusion pattern matched; returning exact client fallback","query":"treatment cost എത്രയാണ്?","service":"dearpal-whatsapp","timestamp":"2026-08-16 22:29:09.503"}
+{"level":"info","message":"Explicit exclusion pattern matched; returning exact client fallback","query":"OP timing എന്താണ്?","service":"dearpal-whatsapp","timestamp":"2026-08-16 22:29:09.503"}
+{"durationMs":329,"isTranslated":true,"level":"info","message":"Query translation completed","originalTextLength":27,"retrievalTextLength":25,"service":"dearpal-whatsapp","sourceLanguage":"mixed","timestamp":"2026-08-16 22:29:09.833"}
+{"isTranslated":true,"level":"info","message":"RAG query started","originalTextLength":27,"retrievalTextLength":25,"service":"dearpal-whatsapp","sourceLanguage":"mixed","threshold":0.3,"timestamp":"2026-08-16 22:29:09.834","topK":5}
+{"level":"info","message":"Vector search started","queryLength":25,"service":"dearpal-whatsapp","threshold":0.3,"timestamp":"2026-08-16 22:29:09.834","topK":5}
+{"dimensions":384,"durationMs":625,"level":"info","message":"OpenAI embedding generated","model":"text-embedding-3-small","promptTokens":8,"service":"dearpal-whatsapp","textLength":25,"timestamp":"2026-08-16 22:29:10.459"}
+{"dimensions":384,"level":"info","message":"Query embedding generated","model":"text-embedding-3-small","service":"dearpal-whatsapp","timestamp":"2026-08-16 22:29:10.459"}
+{"level":"info","message":"Number of approved documents available: 1","service":"dearpal-whatsapp","timestamp":"2026-08-16 22:29:10.586"}
+{"level":"info","message":"No relevant knowledge found (no chunks met similarity threshold)","service":"dearpal-whatsapp","timestamp":"2026-08-16 22:29:10.710"}
+{"level":"info","message":"Vector retrieval completed for RAG","numberOfChunksRetrieved":0,"service":"dearpal-whatsapp","timestamp":"2026-08-16 22:29:10.710","topScore":0}
+{"level":"info","message":"No relevant chunks found above similarity threshold; returning exact client fallback","service":"dearpal-whatsapp","timestamp":"2026-08-16 22:29:10.711"}
+{"durationMs":245,"isTranslated":true,"level":"info","message":"Query translation completed","originalTextLength":54,"retrievalTextLength":39,"service":"dearpal-whatsapp","sourceLanguage":"mixed","timestamp":"2026-08-16 22:29:10.956"}
+{"isTranslated":true,"level":"info","message":"RAG query started","originalTextLength":54,"retrievalTextLength":39,"service":"dearpal-whatsapp","sourceLanguage":"mixed","threshold":0.3,"timestamp":"2026-08-16 22:29:10.956","topK":5}
+{"level":"info","message":"Vector search started","queryLength":39,"service":"dearpal-whatsapp","threshold":0.3,"timestamp":"2026-08-16 22:29:10.956","topK":5}
+{"dimensions":384,"durationMs":460,"level":"info","message":"OpenAI embedding generated","model":"text-embedding-3-small","promptTokens":10,"service":"dearpal-whatsapp","textLength":39,"timestamp":"2026-08-16 22:29:11.416"}
+{"dimensions":384,"level":"info","message":"Query embedding generated","model":"text-embedding-3-small","service":"dearpal-whatsapp","timestamp":"2026-08-16 22:29:11.417"}
+{"level":"info","message":"Number of approved documents available: 1","service":"dearpal-whatsapp","timestamp":"2026-08-16 22:29:11.542"}
+{"level":"info","message":"Vector search completed","numberOfResults":5,"service":"dearpal-whatsapp","timestamp":"2026-08-16 22:29:11.613","topSimilarityScore":0.4229}
+{"level":"info","message":"Vector retrieval completed for RAG","numberOfChunksRetrieved":5,"service":"dearpal-whatsapp","timestamp":"2026-08-16 22:29:11.613","topScore":0.4229}
+{"level":"info","message":"Sarvam 105B RAG completion started","service":"dearpal-whatsapp","timestamp":"2026-08-16 22:29:11.613"}
+{"isRetry":false,"level":"info","maxTokens":3072,"message":"Calling Sarvam 105B Custom Completion","reasoningEffort":"low","service":"dearpal-whatsapp","temperature":0.3,"timestamp":"2026-08-16 22:29:11.614","userMessageLength":3184}
+{"completionTokens":2127,"durationMs":12422,"finishReason":"stop","isRetry":false,"level":"info","message":"Sarvam 105B Custom Completion complete","promptTokens":3154,"reasoningLength":8037,"responseLength":443,"service":"dearpal-whatsapp","timestamp":"2026-08-16 22:29:24.037"}
+{"level":"info","message":"Sarvam RAG response received","service":"dearpal-whatsapp","timestamp":"2026-08-16 22:29:24.037"}
+{"level":"info","message":"RAG generation completed successfully","service":"dearpal-whatsapp","timestamp":"2026-08-16 22:29:24.038"}
