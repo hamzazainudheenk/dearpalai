@@ -32,6 +32,8 @@ class WebhookController {
             }
         };
         this.handleWebhook = (req, res) => {
+            const receiveTime = Date.now();
+            const ackTimestamp = new Date().toISOString();
             // Always acknowledge immediately
             res.status(200).json({
                 status: "received",
@@ -74,6 +76,7 @@ class WebhookController {
                 });
                 return;
             }
+            logger_1.logger.info(`[PERF] messageId=${parsed.messageId} stage=webhook_ack ackDurationMs=${Date.now() - receiveTime} ackTimestamp=${ackTimestamp}`);
             logger_1.logger.info("Incoming WhatsApp Message", {
                 messageId: parsed.messageId,
                 phoneNumber: parsed.phoneNumber,

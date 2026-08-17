@@ -41,7 +41,11 @@ export class VectorSearchService {
     logger.info('Vector search started', { queryLength: trimmedQuery.length, topK, threshold });
 
     // 1. Generate query embedding using OpenAI text-embedding-3-small (384 dimensions)
+    const embStart = Date.now();
     const embeddingResult = await this.embeddingService.getEmbedding(trimmedQuery);
+    const embDurationMs = Date.now() - embStart;
+    logger.info(`[PERF] stage=embedding durationMs=${embDurationMs}`);
+
     const queryEmbedding = embeddingResult.embedding;
 
     // 2. Validate embedding dimensions (384-dim target for OpenAI text-embedding-3-small)
@@ -74,11 +78,14 @@ export class VectorSearchService {
     }
 
     // 4. Execute pgvector cosine similarity RPC query in PostgreSQL
+    const rpcStart = Date.now();
     const { data: rpcResults, error: rpcError } = await supabaseAdmin.rpc('match_knowledge_chunks', {
       query_embedding: JSON.stringify(queryEmbedding),
       match_count: topK,
       similarity_threshold: threshold,
     });
+    const rpcDurationMs = Date.now() - rpcStart;
+    logger.info(`[PERF] stage=vector_search_rpc durationMs=${rpcDurationMs}`);
 
     if (rpcError) {
       logger.error('Supabase pgvector RPC search failed', { error: rpcError.message });

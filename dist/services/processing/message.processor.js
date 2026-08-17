@@ -85,7 +85,9 @@ class MessageProcessor {
      * Processes an incoming message end-to-end.
      */
     async processMessage(message) {
+        const procStartTime = Date.now();
         const conversationId = (0, helpers_1.generateConversationId)();
+        logger_1.logger.info(`[PERF] messageId=${message.messageId} stage=message_processor_start`);
         logger_1.logger.info('Processing message', {
             conversationId,
             messageId: message.messageId,
@@ -136,8 +138,11 @@ class MessageProcessor {
         }
         // Step 3: Send the reply message via WhatsApp API
         if (result.reply) {
+            const sendStart = Date.now();
             try {
                 await this.whatsAppService.sendTextMessage(message.phoneNumber, result.reply);
+                const sendDuration = Date.now() - sendStart;
+                logger_1.logger.info(`[PERF] messageId=${message.messageId} stage=whatsapp_send durationMs=${sendDuration}`);
                 logger_1.logger.info('Reply sent via WhatsAppService', {
                     conversationId,
                     messageId: message.messageId,
@@ -145,6 +150,8 @@ class MessageProcessor {
                 });
             }
             catch (error) {
+                const sendDuration = Date.now() - sendStart;
+                logger_1.logger.info(`[PERF] messageId=${message.messageId} stage=whatsapp_send_failed durationMs=${sendDuration}`);
                 logger_1.logger.error('Failed to send reply via WhatsAppService', {
                     conversationId,
                     messageId: message.messageId,
@@ -152,7 +159,10 @@ class MessageProcessor {
                 });
             }
         }
-        // Step 4: Update conversation record with processing result
+        const totalProcessingMs = Date.now() - procStartTime;
+        logger_1.logger.info(`[PERF] messageId=${message.messageId} totalProcessingMs=${totalProcessingMs}`);
+        // Step 4: Update conversation record with processing result & sync to DB
+        const persistStart = Date.now();
         const updatedRecord = {
             ...record,
             audioFilePath: result.audioFilePath,
@@ -161,6 +171,8 @@ class MessageProcessor {
         await this.conversationStore.store(updatedRecord);
         // Step 5: Sync to Supabase conversations table
         await this.syncToSupabase(message, result);
+        const persistenceDurationMs = Date.now() - persistStart;
+        logger_1.logger.info(`[PERF] messageId=${message.messageId} stage=persistence durationMs=${persistenceDurationMs}`);
         logger_1.logger.info('Message processing complete', {
             conversationId,
             messageId: message.messageId,

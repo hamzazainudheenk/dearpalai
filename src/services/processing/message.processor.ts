@@ -100,7 +100,10 @@ export class MessageProcessor {
    * Processes an incoming message end-to-end.
    */
   async processMessage(message: ParsedMessage): Promise<ProcessingResult> {
+    const procStartTime = Date.now();
     const conversationId = generateConversationId();
+
+    logger.info(`[PERF] messageId=${message.messageId} stage=message_processor_start`);
 
     logger.info('Processing message', {
       conversationId,
@@ -159,14 +162,19 @@ export class MessageProcessor {
 
     // Step 3: Send the reply message via WhatsApp API
     if (result.reply) {
+      const sendStart = Date.now();
       try {
         await this.whatsAppService.sendTextMessage(message.phoneNumber, result.reply);
+        const sendDuration = Date.now() - sendStart;
+        logger.info(`[PERF] messageId=${message.messageId} stage=whatsapp_send durationMs=${sendDuration}`);
         logger.info('Reply sent via WhatsAppService', {
           conversationId,
           messageId: message.messageId,
           replyLength: result.reply.length,
         });
       } catch (error) {
+        const sendDuration = Date.now() - sendStart;
+        logger.info(`[PERF] messageId=${message.messageId} stage=whatsapp_send_failed durationMs=${sendDuration}`);
         logger.error('Failed to send reply via WhatsAppService', {
           conversationId,
           messageId: message.messageId,
@@ -175,7 +183,11 @@ export class MessageProcessor {
       }
     }
 
-    // Step 4: Update conversation record with processing result
+    const totalProcessingMs = Date.now() - procStartTime;
+    logger.info(`[PERF] messageId=${message.messageId} totalProcessingMs=${totalProcessingMs}`);
+
+    // Step 4: Update conversation record with processing result & sync to DB
+    const persistStart = Date.now();
     const updatedRecord: ConversationRecord = {
       ...record,
       audioFilePath: result.audioFilePath,
@@ -185,6 +197,9 @@ export class MessageProcessor {
 
     // Step 5: Sync to Supabase conversations table
     await this.syncToSupabase(message, result);
+
+    const persistenceDurationMs = Date.now() - persistStart;
+    logger.info(`[PERF] messageId=${message.messageId} stage=persistence durationMs=${persistenceDurationMs}`);
 
     logger.info('Message processing complete', {
       conversationId,

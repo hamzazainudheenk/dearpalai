@@ -221,7 +221,10 @@ CONVERSATION is the recent history. Use it. Continuity is most of what makes you
     };
 
     // 2. Translate query to English for vector retrieval if Malayalam/Manglish
+    const transStart = Date.now();
     const translation = await this.translationService.translateToEnglish(trimmedQuery);
+    const transDurationMs = Date.now() - transStart;
+    logger.info(`[PERF] stage=translation durationMs=${transDurationMs}`);
     const retrievalQuery = translation.translatedText;
 
     logger.info('RAG query started', {
@@ -235,9 +238,14 @@ CONVERSATION is the recent history. Use it. Continuity is most of what makes you
 
     // 3. Vector similarity search for matching chunks
     let chunks: VectorSearchResult[] = [];
+    const vecStart = Date.now();
     try {
       chunks = await this.vectorSearchService.searchSimilarChunks(retrievalQuery, searchOptions);
+      const vecDurationMs = Date.now() - vecStart;
+      logger.info(`[PERF] stage=rag_vector_retrieval durationMs=${vecDurationMs}`);
     } catch (err) {
+      const vecDurationMs = Date.now() - vecStart;
+      logger.info(`[PERF] stage=rag_vector_retrieval_failed durationMs=${vecDurationMs}`);
       logger.error('Vector retrieval failed during RAG generation', { error: (err as Error).message });
       throw new Error(`Vector retrieval error: ${(err as Error).message}`);
     }
@@ -317,6 +325,7 @@ ${trimmedQuery}`;
     // 7. Generate completion with Sarvam 105B (maxTokens: 3072, reasoningEffort: 'low')
     logger.info('Sarvam 105B RAG completion started');
     let answerText = '';
+    const llmStart = Date.now();
     try {
       answerText = await this.sarvamChatService.generateCustomCompletion(
         this.STRICT_SYSTEM_PROMPT,
@@ -327,8 +336,12 @@ ${trimmedQuery}`;
           reasoningEffort: 'low',
         }
       );
+      const llmDurationMs = Date.now() - llmStart;
+      logger.info(`[PERF] stage=llm durationMs=${llmDurationMs}`);
       logger.info('Sarvam RAG response received');
     } catch (err) {
+      const llmDurationMs = Date.now() - llmStart;
+      logger.info(`[PERF] stage=llm_failed durationMs=${llmDurationMs}`);
       logger.error('Sarvam 105B generation failed', { error: (err as Error).message });
       throw new Error(`Sarvam 105B generation error: ${(err as Error).message}`);
     }

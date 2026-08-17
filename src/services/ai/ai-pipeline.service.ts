@@ -95,7 +95,10 @@ export class AIPipelineService implements IAIPipeline {
       // Stage 1: Speech-to-Text (for audio messages)
       let transcription;
       if (message.messageType === MessageType.AUDIO && audioFilePath) {
+        const sttStart = Date.now();
         transcription = await this.speechService.transcribe(audioFilePath);
+        const sttDurationMs = Date.now() - sttStart;
+        logger.info(`[PERF] messageId=${message.messageId} stage=stt durationMs=${sttDurationMs}`);
         messageText = transcription.text;
         logger.info('Pipeline: STT complete', {
           confidence: transcription.confidence,
@@ -104,17 +107,24 @@ export class AIPipelineService implements IAIPipeline {
       }
 
       // Stage 2: Fast Greeting Intent Check (Bypasses RAG & Sarvam 105B)
-      if (this.isGreeting(messageText)) {
+      const greetStart = Date.now();
+      const isGreetingIntent = this.isGreeting(messageText);
+      const greetDurationMs = Date.now() - greetStart;
+      logger.info(`[PERF] messageId=${message.messageId} stage=greeting_check durationMs=${greetDurationMs}`);
+
+      if (isGreetingIntent) {
         logger.info('Pipeline: Greeting intent detected, skipping RAG/Sarvam 105B', {
           messageId: message.messageId,
-          text: messageText,
         });
 
         // Run light risk check for completeness
+        const riskStart = Date.now();
         const riskAssessment = await this.riskAssessmentService.assess(messageText, {
           phoneNumber: message.phoneNumber,
           messageType: message.messageType,
         });
+        const riskDurationMs = Date.now() - riskStart;
+        logger.info(`[PERF] messageId=${message.messageId} stage=risk_assessment durationMs=${riskDurationMs}`);
 
         return {
           reply: MessageTemplates.TEXT_RECEIVED,
@@ -127,7 +137,10 @@ export class AIPipelineService implements IAIPipeline {
 
       // Stage 3: RAG Retrieval + Sarvam 105B Generation
       logger.info('Pipeline: RAGService query started', { messageTextLength: messageText.length });
-      const ragResponse = await this.ragService.generateAnswer(messageText);
+      const ragStart = Date.now();
+      const ragResponse = await this.ragService.generateAnswer(messageText, { messageId: message.messageId } as any);
+      const ragDurationMs = Date.now() - ragStart;
+      logger.info(`[PERF] messageId=${message.messageId} stage=rag_total durationMs=${ragDurationMs}`);
 
       logger.info('Pipeline: RAGService query complete', {
         answerLength: ragResponse.answer?.length || 0,
@@ -135,10 +148,13 @@ export class AIPipelineService implements IAIPipeline {
       });
 
       // Stage 4: Safety / Risk Assessment
+      const riskStart = Date.now();
       const riskAssessment = await this.riskAssessmentService.assess(messageText, {
         phoneNumber: message.phoneNumber,
         messageType: message.messageType,
       });
+      const riskDurationMs = Date.now() - riskStart;
+      logger.info(`[PERF] messageId=${message.messageId} stage=risk_assessment durationMs=${riskDurationMs}`);
       logger.info('Pipeline: Risk assessment complete', {
         riskLevel: riskAssessment.riskLevel,
         score: riskAssessment.score,

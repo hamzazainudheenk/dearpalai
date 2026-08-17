@@ -158,12 +158,17 @@ class WhatsAppService {
      * @returns Temporary download URL
      */
     async getMediaUrl(mediaId) {
+        const start = Date.now();
         try {
             const response = await this.client.get(`/${mediaId}`);
-            logger_1.logger.info('Media URL retrieved', { mediaId, url: response.data.url });
+            const durationMs = Date.now() - start;
+            logger_1.logger.info(`[PERF] mediaId=${mediaId} stage=media_url_lookup durationMs=${durationMs}`);
+            logger_1.logger.info('Media URL retrieved', { mediaId });
             return response.data.url;
         }
         catch (error) {
+            const durationMs = Date.now() - start;
+            logger_1.logger.info(`[PERF] mediaId=${mediaId} stage=media_url_lookup_failed durationMs=${durationMs}`);
             logger_1.logger.error('Failed to retrieve media URL', {
                 mediaId,
                 error: error.message,
@@ -180,6 +185,7 @@ class WhatsAppService {
      * @returns Local file path where the media was saved
      */
     async downloadMedia(mediaId, mimeType = 'audio/ogg') {
+        const start = Date.now();
         try {
             // Step 1: Get the temporary download URL
             const mediaUrl = await this.getMediaUrl(mediaId);
@@ -196,6 +202,8 @@ class WhatsAppService {
             }
             // Write the file
             fs_1.default.writeFileSync(filePath, Buffer.from(response.data));
+            const durationMs = Date.now() - start;
+            logger_1.logger.info(`[PERF] mediaId=${mediaId} stage=media_download durationMs=${durationMs}`);
             logger_1.logger.info('Media downloaded successfully', {
                 mediaId,
                 filePath,
@@ -205,6 +213,8 @@ class WhatsAppService {
             return filePath;
         }
         catch (error) {
+            const durationMs = Date.now() - start;
+            logger_1.logger.info(`[PERF] mediaId=${mediaId} stage=media_download_failed durationMs=${durationMs}`);
             logger_1.logger.error('Failed to download media', {
                 mediaId,
                 error: error.message,
