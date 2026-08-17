@@ -3,6 +3,7 @@ export interface SarvamCustomCompletionOptions {
     maxTokens?: number;
     reasoningEffort?: 'low' | 'medium' | 'high';
     isRetry?: boolean;
+    outerStartTime?: number;
 }
 export declare class SarvamChatService {
     private client;

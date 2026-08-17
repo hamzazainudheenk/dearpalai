@@ -6,6 +6,7 @@ export interface SarvamCustomCompletionOptions {
   maxTokens?: number;
   reasoningEffort?: 'low' | 'medium' | 'high';
   isRetry?: boolean;
+  outerStartTime?: number;
 }
 
 export class SarvamChatService {
@@ -75,10 +76,12 @@ Rules:
     options?: SarvamCustomCompletionOptions
   ): Promise<string> {
     const startTime = Date.now();
+    const outerStartTime = options?.outerStartTime ?? startTime;
     const temperature = options?.temperature ?? 0.3;
     const maxTokens = options?.maxTokens ?? 3072;
     const reasoningEffort = options?.reasoningEffort ?? 'low';
     const isRetry = options?.isRetry ?? false;
+    const attempt = isRetry ? 2 : 1;
 
     logger.info('Calling Sarvam 105B Custom Completion', {
       userMessageLength: userMessage.length,
@@ -86,6 +89,7 @@ Rules:
       maxTokens,
       reasoningEffort,
       isRetry,
+      attempt,
     });
 
     // Append concise completion instruction on retry to prevent truncation
@@ -114,13 +118,18 @@ Rules:
     const choice = response.choices?.[0];
     const finishReason = choice?.finish_reason || 'unknown';
     const usage = response.usage;
+    const promptTokens = usage?.prompt_tokens || 0;
+    const completionTokens = usage?.completion_tokens || 0;
+    const totalTokens = usage?.total_tokens || (promptTokens + completionTokens);
     const content = choice?.message?.content || '';
     const reasoningContent = (choice?.message as any)?.reasoning_content || '';
 
+    logger.info(`[LLM_PERF] attempt=${attempt} durationMs=${durationMs} finishReason=${finishReason} promptTokens=${promptTokens} completionTokens=${completionTokens} totalTokens=${totalTokens}`);
+
     logger.info('Sarvam 105B Custom Completion complete', {
       finishReason,
-      promptTokens: usage?.prompt_tokens || 0,
-      completionTokens: usage?.completion_tokens || 0,
+      promptTokens,
+      completionTokens,
       responseLength: content.length,
       reasoningLength: reasoningContent.length,
       durationMs,
@@ -131,8 +140,8 @@ Rules:
     if (finishReason === 'length') {
       logger.warn('Sarvam 105B completion truncated due to token limit', {
         finishReason,
-        promptTokens: usage?.prompt_tokens || 0,
-        completionTokens: usage?.completion_tokens || 0,
+        promptTokens,
+        completionTokens,
         responseLength: content.length,
         reasoningLength: reasoningContent.length,
         durationMs,
@@ -145,6 +154,7 @@ Rules:
         return this.generateCustomCompletion(systemPrompt, userMessage, {
           ...options,
           isRetry: true,
+          outerStartTime,
           maxTokens: Math.max(maxTokens, 3584),
           reasoningEffort: 'low',
         });
@@ -156,6 +166,10 @@ Rules:
         `Empty response content received from Sarvam 105B API (finish_reason: ${finishReason})`
       );
     }
+
+    const totalLlmDurationMs = Date.now() - outerStartTime;
+    const totalAttempts = attempt;
+    logger.info(`[LLM_PERF] totalAttempts=${totalAttempts} totalLlmDurationMs=${totalLlmDurationMs}`);
 
     return content;
   }
