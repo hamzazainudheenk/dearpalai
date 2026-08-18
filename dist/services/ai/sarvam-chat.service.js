@@ -33,7 +33,7 @@ Rules:
             userMessageLength: userMessage.length,
         });
         const response = await this.client.chat.completions({
-            model: 'sarvam-105b',
+            model: 'sarvam-30b',
             temperature: 0.7,
             max_tokens: 3072,
             reasoning_effort: 'low',
@@ -80,7 +80,7 @@ Rules:
             ? `${systemPrompt}\n\nIMPORTANT: Your previous output hit token limits. Be extremely concise. Limit response to 2-3 short bullet points. Conclude all sentences naturally.`
             : systemPrompt;
         const response = await this.client.chat.completions({
-            model: 'sarvam-105b',
+            model: 'sarvam-30b',
             temperature,
             max_tokens: maxTokens,
             reasoning_effort: reasoningEffort,

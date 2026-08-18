@@ -40,7 +40,7 @@ Rules:
     });
 
     const response = await this.client.chat.completions({
-      model: 'sarvam-105b',
+      model: 'sarvam-30b',
       temperature: 0.7,
       max_tokens: 3072,
       reasoning_effort: 'low',
@@ -98,7 +98,7 @@ Rules:
       : systemPrompt;
 
     const response = await this.client.chat.completions({
-      model: 'sarvam-105b',
+      model: 'sarvam-30b',
       temperature,
       max_tokens: maxTokens,
       reasoning_effort: reasoningEffort,
