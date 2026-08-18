@@ -63,21 +63,7 @@ export class VectorSearchService {
       dimensions: queryEmbedding.length,
     });
 
-    // 3. Count approved & completed documents available in system
-    const { count: approvedDocCount } = await supabaseAdmin
-      .from('knowledge_documents')
-      .select('*', { count: 'exact', head: true })
-      .eq('status', 'completed')
-      .eq('approved', true);
-
-    logger.info(`Number of approved documents available: ${approvedDocCount || 0}`);
-
-    if (!approvedDocCount || approvedDocCount === 0) {
-      logger.info('No relevant knowledge found (no approved completed documents in database)');
-      return [];
-    }
-
-    // 4. Execute pgvector cosine similarity RPC query in PostgreSQL
+    // 3. Execute pgvector cosine similarity RPC query in PostgreSQL
     const rpcStart = Date.now();
     const { data: rpcResults, error: rpcError } = await supabaseAdmin.rpc('match_knowledge_chunks', {
       query_embedding: JSON.stringify(queryEmbedding),
