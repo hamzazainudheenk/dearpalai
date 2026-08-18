@@ -322,7 +322,7 @@ ${conversationHistory}
 USER QUESTION:
 ${trimmedQuery}`;
 
-    // 7. Generate completion with Sarvam 105B (maxTokens: 3072, reasoningEffort: 'low')
+    // 7. Generate completion with Sarvam 105B (maxTokens: 3584, reasoningEffort: 'low')
     logger.info('Sarvam 105B RAG completion started');
     let answerText = '';
     const llmStart = Date.now();
@@ -332,7 +332,7 @@ ${trimmedQuery}`;
         userPrompt,
         {
           temperature: 0.3,
-          maxTokens: 3072,
+          maxTokens: 3584,
           reasoningEffort: 'low',
         }
       );
