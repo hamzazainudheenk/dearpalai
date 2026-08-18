@@ -40,7 +40,7 @@ Rules:
     });
 
     const response = await this.client.chat.completions({
-      model: 'sarvam-30b',
+      model: 'sarvam-105b-conversations' as any,
       temperature: 0.7,
       max_tokens: 3072,
       reasoning_effort: 'low',
@@ -67,7 +67,7 @@ Rules:
   }
 
   /**
-   * Generates a grounded completion using Sarvam 105B with custom system prompt, user context, token limits,
+   * Generates a grounded completion using sarvam-105b-conversations with custom system prompt, user context, token limits,
    * reasoning effort controls, and safe single-retry handling if truncated (finishReason === "length").
    */
   async generateCustomCompletion(
@@ -83,7 +83,7 @@ Rules:
     const isRetry = options?.isRetry ?? false;
     const attempt = isRetry ? 2 : 1;
 
-    logger.info('Calling Sarvam 105B Custom Completion', {
+    logger.info('Calling sarvam-105b-conversations Custom Completion', {
       userMessageLength: userMessage.length,
       temperature,
       maxTokens,
@@ -98,7 +98,7 @@ Rules:
       : systemPrompt;
 
     const response = await this.client.chat.completions({
-      model: 'sarvam-30b',
+      model: 'sarvam-105b-conversations' as any,
       temperature,
       max_tokens: maxTokens,
       reasoning_effort: reasoningEffort,
@@ -126,7 +126,7 @@ Rules:
 
     logger.info(`[LLM_PERF] attempt=${attempt} durationMs=${durationMs} finishReason=${finishReason} promptTokens=${promptTokens} completionTokens=${completionTokens} totalTokens=${totalTokens}`);
 
-    logger.info('Sarvam 105B Custom Completion complete', {
+    logger.info('sarvam-105b-conversations Custom Completion complete', {
       finishReason,
       promptTokens,
       completionTokens,
@@ -138,7 +138,7 @@ Rules:
 
     // Check for truncated response (finishReason === 'length')
     if (finishReason === 'length') {
-      logger.warn('Sarvam 105B completion truncated due to token limit', {
+      logger.warn('sarvam-105b-conversations completion truncated due to token limit', {
         finishReason,
         promptTokens,
         completionTokens,
@@ -150,7 +150,7 @@ Rules:
 
       // If this is the initial request, attempt exactly 1 retry with concise parameters
       if (!isRetry) {
-        logger.info('Attempting single retry for truncated Sarvam 105B response');
+        logger.info('Attempting single retry for truncated sarvam-105b-conversations response');
         return this.generateCustomCompletion(systemPrompt, userMessage, {
           ...options,
           isRetry: true,
@@ -163,7 +163,7 @@ Rules:
 
     if (!content || !content.trim()) {
       throw new Error(
-        `Empty response content received from Sarvam 105B API (finish_reason: ${finishReason})`
+        `Empty response content received from sarvam-105b-conversations API (finish_reason: ${finishReason})`
       );
     }
 
