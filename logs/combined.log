@@ -2671,3 +2671,10 @@
 {"completionTokens":2127,"durationMs":12422,"finishReason":"stop","isRetry":false,"level":"info","message":"Sarvam 105B Custom Completion complete","promptTokens":3154,"reasoningLength":8037,"responseLength":443,"service":"dearpal-whatsapp","timestamp":"2026-08-16 22:29:24.037"}
 {"level":"info","message":"Sarvam RAG response received","service":"dearpal-whatsapp","timestamp":"2026-08-16 22:29:24.037"}
 {"level":"info","message":"RAG generation completed successfully","service":"dearpal-whatsapp","timestamp":"2026-08-16 22:29:24.038"}
+{"durationMs":684,"isTranslated":true,"level":"info","message":"Query translation completed","originalTextLength":111,"retrievalTextLength":85,"service":"dearpal-whatsapp","sourceLanguage":"ml","timestamp":"2026-08-18 06:49:09.885"}
+{"level":"info","message":"Vector search started","queryLength":85,"service":"dearpal-whatsapp","threshold":0.3,"timestamp":"2026-08-18 06:49:09.893","topK":5}
+{"dimensions":384,"durationMs":4568,"level":"info","message":"OpenAI embedding generated","model":"text-embedding-3-small","promptTokens":18,"service":"dearpal-whatsapp","textLength":85,"timestamp":"2026-08-18 06:49:14.463"}
+{"level":"info","message":"[PERF] stage=embedding durationMs=4570","service":"dearpal-whatsapp","timestamp":"2026-08-18 06:49:14.464"}
+{"dimensions":384,"level":"info","message":"Query embedding generated","model":"text-embedding-3-small","service":"dearpal-whatsapp","timestamp":"2026-08-18 06:49:14.464"}
+{"level":"info","message":"[PERF] stage=vector_search_rpc durationMs=1027","service":"dearpal-whatsapp","timestamp":"2026-08-18 06:49:15.491"}
+{"level":"info","message":"Vector search completed","numberOfResults":5,"service":"dearpal-whatsapp","timestamp":"2026-08-18 06:49:15.492","topSimilarityScore":0.4399}
