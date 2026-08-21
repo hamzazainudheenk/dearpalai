@@ -32,6 +32,25 @@ export declare class WhatsAppService {
      */
     sendTextMessage(phoneNumber: string, message: string): Promise<SendMessageResponse>;
     /**
+     * Uploads an audio media Buffer to Meta WhatsApp Cloud API.
+     *
+     * @param audioBuffer - Binary audio buffer (e.g. Ogg Opus audio)
+     * @param mimeType - MIME type for media upload (defaults to 'audio/ogg; codecs=opus')
+     * @param filename - Optional file name
+     * @returns Meta media ID
+     */
+    uploadMedia(audioBuffer: Buffer, mimeType?: string, filename?: string): Promise<string>;
+    /**
+     * Sends an audio/voice message to a WhatsApp user using a media ID.
+     *
+     * Includes a single retry with 1-second delay on network failures.
+     *
+     * @param phoneNumber - Recipient phone number (international format)
+     * @param mediaId - Meta WhatsApp media ID
+     * @returns API response with message ID
+     */
+    sendAudioMessage(phoneNumber: string, mediaId: string): Promise<SendMessageResponse>;
+    /**
    * Sends an approved WhatsApp template message.
    *
    * @param phoneNumber - Recipient phone number

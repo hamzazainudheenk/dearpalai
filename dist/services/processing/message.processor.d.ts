@@ -9,12 +9,14 @@
  */
 import { ParsedMessage, ProcessingResult, IConversationStore, IMessageProcessor } from '../../types/index';
 import { WhatsAppService } from '../whatsapp/whatsapp.service';
+import { ITextToSpeechService } from '../ai/interfaces';
 export declare class MessageProcessor {
     private readonly textProcessor;
     private readonly voiceProcessor;
     private readonly whatsAppService;
     private readonly conversationStore;
-    constructor(textProcessor: IMessageProcessor, voiceProcessor: IMessageProcessor, whatsAppService: WhatsAppService, conversationStore: IConversationStore);
+    private readonly ttsService?;
+    constructor(textProcessor: IMessageProcessor, voiceProcessor: IMessageProcessor, whatsAppService: WhatsAppService, conversationStore: IConversationStore, ttsService?: ITextToSpeechService | undefined);
     /**
      * Syncs a message pair (inbound user message and outbound AI reply) to Supabase conversations table.
      */

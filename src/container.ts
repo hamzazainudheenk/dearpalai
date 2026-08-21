@@ -4,12 +4,14 @@ import { IConversationStore } from '@app-types/index';
 import { WhatsAppService } from '@services/whatsapp/whatsapp.service';
 import {
   ISpeechService,
+  ITextToSpeechService,
   IEmbeddingService,
   IRiskAssessmentService,
   IDecisionEngine,
   IAIPipeline,
 } from '@services/ai/interfaces';
 import { SarvamSpeechService } from '@services/ai/sarvam-speech.service';
+import { SarvamTextToSpeechService } from '@services/ai/sarvam-tts.service';
 import { EmbeddingService } from '@services/ai/embedding.service';
 import { RAGService } from '@services/knowledge/rag.service';
 import { RiskAssessmentService } from '@services/ai/risk-assessment.service';
@@ -38,6 +40,7 @@ class Container {
 
   private _whatsAppService?: WhatsAppService;
   private _speechService?: ISpeechService;
+  private _ttsService?: ITextToSpeechService;
   private _embeddingService?: IEmbeddingService;
   private _ragService?: RAGService;
   private _riskAssessmentService?: IRiskAssessmentService;
@@ -66,6 +69,13 @@ class Container {
       this._speechService = new SarvamSpeechService();
     }
     return this._speechService;
+  }
+
+  get ttsService(): ITextToSpeechService {
+    if (!this._ttsService) {
+      this._ttsService = new SarvamTextToSpeechService();
+    }
+    return this._ttsService;
   }
 
   get embeddingService(): IEmbeddingService {

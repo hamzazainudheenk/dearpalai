@@ -8,6 +8,7 @@
  *   Incoming webhook → parse → store metadata → route to processor → send reply → update metadata & Supabase
  */
 
+import fs from 'fs';
 import {
   ParsedMessage,
   ProcessingResult,
@@ -17,6 +18,7 @@ import {
   IMessageProcessor,
 } from '@app-types/index';
 import { WhatsAppService } from '@services/whatsapp/whatsapp.service';
+import { ITextToSpeechService } from '@services/ai/interfaces';
 import { MessageTemplates } from '@config/messages';
 import { generateConversationId } from '@utils/helpers';
 import { logger } from '@utils/logger';
@@ -27,7 +29,8 @@ export class MessageProcessor {
     private readonly textProcessor: IMessageProcessor,
     private readonly voiceProcessor: IMessageProcessor,
     private readonly whatsAppService: WhatsAppService,
-    private readonly conversationStore: IConversationStore
+    private readonly conversationStore: IConversationStore,
+    private readonly ttsService?: ITextToSpeechService
   ) {}
 
   /**
@@ -125,61 +128,143 @@ export class MessageProcessor {
     await this.conversationStore.store(record);
 
     // Step 2: Route to the appropriate processor
-    let result: ProcessingResult;
+    let result!: ProcessingResult;
 
-    switch (message.messageType) {
-      case MessageType.TEXT:
-        result = await this.textProcessor.process(message);
-        break;
+    try {
+      switch (message.messageType) {
+        case MessageType.TEXT:
+          result = await this.textProcessor.process(message);
+          break;
 
-      case MessageType.AUDIO:
-        result = await this.voiceProcessor.process(message);
-        break;
+        case MessageType.AUDIO:
+          result = await this.voiceProcessor.process(message);
+          break;
 
-      case MessageType.IMAGE:
-        logger.info('Image message received — ignoring (not yet supported)', {
-          messageId: message.messageId,
-        });
-        result = {
-          success: true,
-          reply: MessageTemplates.UNSUPPORTED_TYPE,
-          source: 'static',
-        };
-        break;
+        case MessageType.IMAGE:
+          logger.info('Image message received — ignoring (not yet supported)', {
+            messageId: message.messageId,
+          });
+          result = {
+            success: true,
+            reply: MessageTemplates.UNSUPPORTED_TYPE,
+            source: 'static',
+          };
+          break;
 
-      default:
-        logger.warn('Unsupported message type received', {
-          messageId: message.messageId,
-          messageType: message.messageType,
-        });
-        result = {
-          success: true,
-          reply: MessageTemplates.UNSUPPORTED_TYPE,
-          source: 'static',
-        };
-        break;
-    }
+        default:
+          logger.warn('Unsupported message type received', {
+            messageId: message.messageId,
+            messageType: message.messageType,
+          });
+          result = {
+            success: true,
+            reply: MessageTemplates.UNSUPPORTED_TYPE,
+            source: 'static',
+          };
+          break;
+      }
 
-    // Step 3: Send the reply message via WhatsApp API
-    if (result.reply) {
-      const sendStart = Date.now();
-      try {
-        await this.whatsAppService.sendTextMessage(message.phoneNumber, result.reply);
-        const sendDuration = Date.now() - sendStart;
-        logger.info(`[PERF] messageId=${message.messageId} stage=whatsapp_send durationMs=${sendDuration}`);
-        logger.info('Reply sent via WhatsAppService', {
-          conversationId,
-          messageId: message.messageId,
-          replyLength: result.reply.length,
-        });
-      } catch (error) {
-        const sendDuration = Date.now() - sendStart;
-        logger.info(`[PERF] messageId=${message.messageId} stage=whatsapp_send_failed durationMs=${sendDuration}`);
-        logger.error('Failed to send reply via WhatsAppService', {
-          conversationId,
-          messageId: message.messageId,
-          error: (error as Error).message,
-        });
+      // Step 3: Send the reply message via WhatsApp API
+      if (result.reply) {
+        if (message.messageType === MessageType.AUDIO && this.ttsService) {
+          const voiceReplyStart = Date.now();
+          let sentVoiceReply = false;
+
+          try {
+            // a. Generate TTS Audio Buffer (Sarvam Bulbul v3)
+            const ttsStart = Date.now();
+            const audioBuffer = await this.ttsService.textToSpeech(result.reply);
+            const ttsDuration = Date.now() - ttsStart;
+            logger.info(`[PERF] messageId=${message.messageId} stage=tts durationMs=${ttsDuration} audioSizeBytes=${audioBuffer.length}`);
+
+            // b. Upload media to WhatsApp Cloud API
+            const uploadStart = Date.now();
+            const mediaId = await this.whatsAppService.uploadMedia(audioBuffer);
+            const uploadDuration = Date.now() - uploadStart;
+            logger.info(`[PERF] messageId=${message.messageId} stage=whatsapp_media_upload durationMs=${uploadDuration}`);
+
+            // c. Send audio message to WhatsApp user
+            const sendAudioStart = Date.now();
+            await this.whatsAppService.sendAudioMessage(message.phoneNumber, mediaId);
+            const sendAudioDuration = Date.now() - sendAudioStart;
+            logger.info(`[PERF] messageId=${message.messageId} stage=whatsapp_audio_send durationMs=${sendAudioDuration}`);
+
+            const totalVoiceReplyDuration = Date.now() - voiceReplyStart;
+            logger.info(`[PERF] messageId=${message.messageId} stage=total_voice_reply durationMs=${totalVoiceReplyDuration}`);
+            logger.info('Voice reply sent successfully via WhatsAppService', {
+              conversationId,
+              messageId: message.messageId,
+            });
+
+            sentVoiceReply = true;
+          } catch (voiceError) {
+            const voiceFailDuration = Date.now() - voiceReplyStart;
+            logger.warn('Voice reply flow failed, falling back to text message', {
+              conversationId,
+              messageId: message.messageId,
+              durationMs: voiceFailDuration,
+              error: (voiceError as Error).message,
+            });
+          }
+
+          // Fallback to text message if voice generation/upload/send failed
+          if (!sentVoiceReply) {
+            const sendStart = Date.now();
+            try {
+              await this.whatsAppService.sendTextMessage(message.phoneNumber, result.reply);
+              const sendDuration = Date.now() - sendStart;
+              logger.info(`[PERF] messageId=${message.messageId} stage=whatsapp_send_fallback durationMs=${sendDuration}`);
+              logger.info('Text fallback reply sent via WhatsAppService', {
+                conversationId,
+                messageId: message.messageId,
+              });
+            } catch (fallbackErr) {
+              logger.error('Failed to send text fallback reply via WhatsAppService', {
+                conversationId,
+                messageId: message.messageId,
+                error: (fallbackErr as Error).message,
+              });
+            }
+          }
+        } else {
+          // Standard TEXT message branch (or if ttsService is unavailable)
+          const sendStart = Date.now();
+          try {
+            await this.whatsAppService.sendTextMessage(message.phoneNumber, result.reply);
+            const sendDuration = Date.now() - sendStart;
+            logger.info(`[PERF] messageId=${message.messageId} stage=whatsapp_send durationMs=${sendDuration}`);
+            logger.info('Reply sent via WhatsAppService', {
+              conversationId,
+              messageId: message.messageId,
+              replyLength: result.reply.length,
+            });
+          } catch (error) {
+            const sendDuration = Date.now() - sendStart;
+            logger.info(`[PERF] messageId=${message.messageId} stage=whatsapp_send_failed durationMs=${sendDuration}`);
+            logger.error('Failed to send reply via WhatsAppService', {
+              conversationId,
+              messageId: message.messageId,
+              error: (error as Error).message,
+            });
+          }
+        }
+      }
+    } finally {
+      // Step 4: Cleanup downloaded incoming voice temp file
+      if (result?.audioFilePath && fs.existsSync(result.audioFilePath)) {
+        try {
+          fs.unlinkSync(result.audioFilePath);
+          logger.info('Cleaned up incoming voice temp file', {
+            messageId: message.messageId,
+            filePath: result.audioFilePath,
+          });
+        } catch (cleanupErr) {
+          logger.warn('Failed to cleanup incoming voice temp file', {
+            messageId: message.messageId,
+            filePath: result.audioFilePath,
+            error: (cleanupErr as Error).message,
+          });
+        }
       }
     }
 

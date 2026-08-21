@@ -102,6 +102,104 @@ class WhatsAppService {
         }
     }
     /**
+     * Uploads an audio media Buffer to Meta WhatsApp Cloud API.
+     *
+     * @param audioBuffer - Binary audio buffer (e.g. Ogg Opus audio)
+     * @param mimeType - MIME type for media upload (defaults to 'audio/ogg; codecs=opus')
+     * @param filename - Optional file name
+     * @returns Meta media ID
+     */
+    async uploadMedia(audioBuffer, mimeType = 'audio/ogg; codecs=opus', filename = 'voice_reply.ogg') {
+        const start = Date.now();
+        const endpoint = `/${index_1.config.whatsapp.phoneNumberId}/media`;
+        const formData = new FormData();
+        formData.append('messaging_product', 'whatsapp');
+        formData.append('file', new Blob([audioBuffer], { type: 'audio/ogg' }), filename);
+        formData.append('type', 'audio/ogg');
+        try {
+            const response = await this.client.post(endpoint, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+            const durationMs = Date.now() - start;
+            const mediaId = response.data.id;
+            logger_1.logger.info('Media uploaded successfully to WhatsApp Cloud API', {
+                mediaId,
+                byteSize: audioBuffer.length,
+                durationMs,
+                mimeType,
+            });
+            return mediaId;
+        }
+        catch (error) {
+            const durationMs = Date.now() - start;
+            logger_1.logger.error('Failed to upload media to WhatsApp Cloud API', {
+                byteSize: audioBuffer.length,
+                durationMs,
+                error: error.message,
+                response: error.response?.data,
+            });
+            throw error;
+        }
+    }
+    /**
+     * Sends an audio/voice message to a WhatsApp user using a media ID.
+     *
+     * Includes a single retry with 1-second delay on network failures.
+     *
+     * @param phoneNumber - Recipient phone number (international format)
+     * @param mediaId - Meta WhatsApp media ID
+     * @returns API response with message ID
+     */
+    async sendAudioMessage(phoneNumber, mediaId) {
+        const payload = {
+            messaging_product: 'whatsapp',
+            recipient_type: 'individual',
+            to: phoneNumber,
+            type: 'audio',
+            audio: {
+                id: mediaId,
+            },
+        };
+        const endpoint = `/${index_1.config.whatsapp.phoneNumberId}/messages`;
+        try {
+            const response = await this.client.post(endpoint, payload);
+            logger_1.logger.info('Audio message sent successfully', {
+                phoneNumber,
+                mediaId,
+                messageId: response.data.messages?.[0]?.id,
+            });
+            return response.data;
+        }
+        catch (error) {
+            logger_1.logger.warn('First attempt to send audio message failed, retrying...', {
+                phoneNumber,
+                mediaId,
+                error: error.message,
+            });
+            await this.delay(1000);
+            try {
+                const retryResponse = await this.client.post(endpoint, payload);
+                logger_1.logger.info('Audio message sent successfully on retry', {
+                    phoneNumber,
+                    mediaId,
+                    messageId: retryResponse.data.messages?.[0]?.id,
+                });
+                return retryResponse.data;
+            }
+            catch (retryError) {
+                logger_1.logger.error('Failed to send audio message after retry', {
+                    phoneNumber,
+                    mediaId,
+                    error: retryError.message,
+                    response: retryError.response?.data,
+                });
+                throw retryError;
+            }
+        }
+    }
+    /**
    * Sends an approved WhatsApp template message.
    *
    * @param phoneNumber - Recipient phone number

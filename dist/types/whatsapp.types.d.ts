@@ -97,6 +97,16 @@ export interface SendTextMessagePayload {
         body: string;
     };
 }
+/** Payload for sending an audio/voice message */
+export interface SendAudioMessagePayload {
+    messaging_product: 'whatsapp';
+    recipient_type?: 'individual';
+    to: string;
+    type: 'audio';
+    audio: {
+        id: string;
+    };
+}
 /** Response from the media URL endpoint */
 export interface MediaUrlResponse {
     url: string;
@@ -105,5 +115,9 @@ export interface MediaUrlResponse {
     file_size: number;
     id: string;
     messaging_product: string;
+}
+/** Response from the media upload endpoint */
+export interface UploadMediaResponse {
+    id: string;
 }
 //# sourceMappingURL=whatsapp.types.d.ts.map

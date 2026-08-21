@@ -2678,3 +2678,37 @@
 {"dimensions":384,"level":"info","message":"Query embedding generated","model":"text-embedding-3-small","service":"dearpal-whatsapp","timestamp":"2026-08-18 06:49:14.464"}
 {"level":"info","message":"[PERF] stage=vector_search_rpc durationMs=1027","service":"dearpal-whatsapp","timestamp":"2026-08-18 06:49:15.491"}
 {"level":"info","message":"Vector search completed","numberOfResults":5,"service":"dearpal-whatsapp","timestamp":"2026-08-18 06:49:15.492","topSimilarityScore":0.4399}
+{"level":"info","message":"Calling Sarvam Bulbul v3 Text-to-Speech","service":"dearpal-whatsapp","textLength":38,"timestamp":"2026-08-21 06:32:07.686"}
+{"durationMs":397,"error":"BadRequestError\nStatus code: 400\nBody: {\n  \"error\": {\n    \"message\": \"OPUS codec requires one of these sample rates: 8000, 12000, 16000, 24000, 48000 Hz. Current sample rate: 22050 Hz. Please use a supported sample rate or choose a different codec.\",\n    \"code\": \"invalid_request_error\",\n    \"request_id\": \"20260821_d2aae16f-82be-43b2-8477-648668cc03d5\"\n  }\n}","level":"error","message":"Sarvam TTS conversion failed","service":"dearpal-whatsapp","timestamp":"2026-08-21 06:32:08.081"}
+{"level":"info","message":"Calling Sarvam Bulbul v3 Text-to-Speech","service":"dearpal-whatsapp","textLength":38,"timestamp":"2026-08-21 06:32:32.971"}
+{"audioSizeBytes":27582,"codec":"opus","durationMs":1564,"level":"info","message":"Sarvam Bulbul v3 TTS conversion complete","model":"bulbul:v3","sampleRate":24000,"service":"dearpal-whatsapp","speaker":"shubh","timestamp":"2026-08-21 06:32:34.534"}
+{"level":"info","message":"Calling Sarvam Bulbul v3 Text-to-Speech","service":"dearpal-whatsapp","textLength":38,"timestamp":"2026-08-21 06:37:12.932"}
+{"audioSizeBytes":28187,"codec":"opus","durationMs":1660,"level":"info","message":"Sarvam Bulbul v3 TTS conversion complete","model":"bulbul:v3","sampleRate":24000,"service":"dearpal-whatsapp","speaker":"shubh","timestamp":"2026-08-21 06:37:14.591"}
+{"level":"info","message":"[PERF] messageId=msg_text_1 stage=message_processor_start","service":"dearpal-whatsapp","timestamp":"2026-08-21 06:40:52.208"}
+{"conversationId":"5c0334dc-9a8f-44cd-9c89-de6aca25bab0","level":"info","message":"Processing message","messageId":"msg_text_1","messageType":"text","phoneNumber":"919876543210","service":"dearpal-whatsapp","timestamp":"2026-08-21 06:40:52.216"}
+{"level":"info","message":"[PERF] messageId=msg_text_1 stage=whatsapp_send durationMs=0","service":"dearpal-whatsapp","timestamp":"2026-08-21 06:40:52.220"}
+{"conversationId":"5c0334dc-9a8f-44cd-9c89-de6aca25bab0","level":"info","message":"Reply sent via WhatsAppService","messageId":"msg_text_1","replyLength":13,"service":"dearpal-whatsapp","timestamp":"2026-08-21 06:40:52.220"}
+{"level":"info","message":"[PERF] messageId=msg_text_1 totalProcessingMs=14","service":"dearpal-whatsapp","timestamp":"2026-08-21 06:40:52.221"}
+{"cleanPhone":"919876543210","level":"info","message":"Synced conversation to Supabase","patientId":null,"service":"dearpal-whatsapp","timestamp":"2026-08-21 06:40:54.545"}
+{"level":"info","message":"[PERF] messageId=msg_text_1 stage=persistence durationMs=2324","service":"dearpal-whatsapp","timestamp":"2026-08-21 06:40:54.546"}
+{"conversationId":"5c0334dc-9a8f-44cd-9c89-de6aca25bab0","level":"info","message":"Message processing complete","messageId":"msg_text_1","service":"dearpal-whatsapp","source":"rag","success":true,"timestamp":"2026-08-21 06:40:54.547"}
+{"level":"info","message":"[PERF] messageId=msg_audio_1 stage=message_processor_start","service":"dearpal-whatsapp","timestamp":"2026-08-21 06:40:54.548"}
+{"conversationId":"e4eff026-3652-4a6a-b7a1-759ebf412b2a","level":"info","message":"Processing message","messageId":"msg_audio_1","messageType":"audio","phoneNumber":"919876543210","service":"dearpal-whatsapp","timestamp":"2026-08-21 06:40:54.548"}
+{"level":"info","message":"[PERF] messageId=msg_audio_1 stage=tts durationMs=0 audioSizeBytes=15","service":"dearpal-whatsapp","timestamp":"2026-08-21 06:40:54.549"}
+{"level":"info","message":"[PERF] messageId=msg_audio_1 stage=whatsapp_media_upload durationMs=0","service":"dearpal-whatsapp","timestamp":"2026-08-21 06:40:54.549"}
+{"level":"info","message":"[PERF] messageId=msg_audio_1 stage=whatsapp_audio_send durationMs=0","service":"dearpal-whatsapp","timestamp":"2026-08-21 06:40:54.550"}
+{"level":"info","message":"[PERF] messageId=msg_audio_1 stage=total_voice_reply durationMs=1","service":"dearpal-whatsapp","timestamp":"2026-08-21 06:40:54.550"}
+{"conversationId":"e4eff026-3652-4a6a-b7a1-759ebf412b2a","level":"info","message":"Voice reply sent successfully via WhatsAppService","messageId":"msg_audio_1","service":"dearpal-whatsapp","timestamp":"2026-08-21 06:40:54.550"}
+{"level":"info","message":"[PERF] messageId=msg_audio_1 totalProcessingMs=2","service":"dearpal-whatsapp","timestamp":"2026-08-21 06:40:54.550"}
+{"cleanPhone":"919876543210","level":"info","message":"Synced conversation to Supabase","patientId":null,"service":"dearpal-whatsapp","timestamp":"2026-08-21 06:40:54.852"}
+{"level":"info","message":"[PERF] messageId=msg_audio_1 stage=persistence durationMs=301","service":"dearpal-whatsapp","timestamp":"2026-08-21 06:40:54.852"}
+{"conversationId":"e4eff026-3652-4a6a-b7a1-759ebf412b2a","level":"info","message":"Message processing complete","messageId":"msg_audio_1","service":"dearpal-whatsapp","source":"rag","success":true,"timestamp":"2026-08-21 06:40:54.853"}
+{"level":"info","message":"[PERF] messageId=msg_audio_1 stage=message_processor_start","service":"dearpal-whatsapp","timestamp":"2026-08-21 06:40:54.853"}
+{"conversationId":"d47173a4-1f63-4804-b673-9ec1c91fd9a6","level":"info","message":"Processing message","messageId":"msg_audio_1","messageType":"audio","phoneNumber":"919876543210","service":"dearpal-whatsapp","timestamp":"2026-08-21 06:40:54.853"}
+{"conversationId":"d47173a4-1f63-4804-b673-9ec1c91fd9a6","durationMs":0,"error":"TTS Service Error","level":"warn","message":"Voice reply flow failed, falling back to text message","messageId":"msg_audio_1","service":"dearpal-whatsapp","timestamp":"2026-08-21 06:40:54.854"}
+{"level":"info","message":"[PERF] messageId=msg_audio_1 stage=whatsapp_send_fallback durationMs=0","service":"dearpal-whatsapp","timestamp":"2026-08-21 06:40:54.854"}
+{"conversationId":"d47173a4-1f63-4804-b673-9ec1c91fd9a6","level":"info","message":"Text fallback reply sent via WhatsAppService","messageId":"msg_audio_1","service":"dearpal-whatsapp","timestamp":"2026-08-21 06:40:54.855"}
+{"level":"info","message":"[PERF] messageId=msg_audio_1 totalProcessingMs=2","service":"dearpal-whatsapp","timestamp":"2026-08-21 06:40:54.855"}
+{"cleanPhone":"919876543210","level":"info","message":"Synced conversation to Supabase","patientId":null,"service":"dearpal-whatsapp","timestamp":"2026-08-21 06:40:55.039"}
+{"level":"info","message":"[PERF] messageId=msg_audio_1 stage=persistence durationMs=184","service":"dearpal-whatsapp","timestamp":"2026-08-21 06:40:55.039"}
+{"conversationId":"d47173a4-1f63-4804-b673-9ec1c91fd9a6","level":"info","message":"Message processing complete","messageId":"msg_audio_1","service":"dearpal-whatsapp","source":"rag","success":true,"timestamp":"2026-08-21 06:40:55.040"}

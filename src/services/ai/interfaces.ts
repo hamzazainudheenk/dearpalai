@@ -78,6 +78,17 @@ export interface IDecisionEngine {
 
 // ─── AI Pipeline ─────────────────────────────────────────
 
+// ─── Text-to-Speech ──────────────────────────────────────
+
+/**
+ * Text-to-Speech service interface.
+ * Converts text into spoken audio buffer.
+ */
+export interface ITextToSpeechService {
+  /** Convert text into spoken audio Buffer */
+  textToSpeech(text: string): Promise<Buffer>;
+}
+
 /**
  * AI Pipeline orchestrator interface.
  * Coordinates the full AI processing flow:

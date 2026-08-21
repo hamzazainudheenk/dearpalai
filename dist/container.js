@@ -4,6 +4,7 @@ exports.container = void 0;
 // Services
 const whatsapp_service_1 = require("./services/whatsapp/whatsapp.service");
 const sarvam_speech_service_1 = require("./services/ai/sarvam-speech.service");
+const sarvam_tts_service_1 = require("./services/ai/sarvam-tts.service");
 const embedding_service_1 = require("./services/ai/embedding.service");
 const rag_service_1 = require("./services/knowledge/rag.service");
 const risk_assessment_service_1 = require("./services/ai/risk-assessment.service");
@@ -37,6 +38,12 @@ class Container {
             this._speechService = new sarvam_speech_service_1.SarvamSpeechService();
         }
         return this._speechService;
+    }
+    get ttsService() {
+        if (!this._ttsService) {
+            this._ttsService = new sarvam_tts_service_1.SarvamTextToSpeechService();
+        }
+        return this._ttsService;
     }
     get embeddingService() {
         if (!this._embeddingService) {

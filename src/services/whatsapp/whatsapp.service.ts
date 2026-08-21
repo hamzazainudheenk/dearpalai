@@ -17,7 +17,9 @@ import { getExtensionFromMimeType } from '@utils/helpers';
 import {
   SendMessageResponse,
   SendTextMessagePayload,
+  SendAudioMessagePayload,
   MediaUrlResponse,
+  UploadMediaResponse,
 } from '@app-types/index';
 
 /**
@@ -109,6 +111,131 @@ export class WhatsAppService {
       } catch (retryError) {
         logger.error('Failed to send message after retry', {
           phoneNumber,
+          error: (retryError as AxiosError).message,
+          response: (retryError as AxiosError).response?.data,
+        });
+        throw retryError;
+      }
+    }
+  }
+
+  /**
+   * Uploads an audio media Buffer to Meta WhatsApp Cloud API.
+   *
+   * @param audioBuffer - Binary audio buffer (e.g. Ogg Opus audio)
+   * @param mimeType - MIME type for media upload (defaults to 'audio/ogg; codecs=opus')
+   * @param filename - Optional file name
+   * @returns Meta media ID
+   */
+  async uploadMedia(
+    audioBuffer: Buffer,
+    mimeType = 'audio/ogg; codecs=opus',
+    filename = 'voice_reply.ogg',
+  ): Promise<string> {
+    const start = Date.now();
+    const endpoint = `/${config.whatsapp.phoneNumberId}/media`;
+
+    const formData = new FormData();
+    formData.append('messaging_product', 'whatsapp');
+    formData.append(
+      'file',
+      new Blob([audioBuffer], { type: 'audio/ogg' }),
+      filename,
+    );
+    formData.append('type', 'audio/ogg');
+
+    try {
+      const response = await this.client.post<UploadMediaResponse>(
+        endpoint,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        },
+      );
+
+      const durationMs = Date.now() - start;
+      const mediaId = response.data.id;
+
+      logger.info('Media uploaded successfully to WhatsApp Cloud API', {
+        mediaId,
+        byteSize: audioBuffer.length,
+        durationMs,
+        mimeType,
+      });
+
+      return mediaId;
+    } catch (error) {
+      const durationMs = Date.now() - start;
+      logger.error('Failed to upload media to WhatsApp Cloud API', {
+        byteSize: audioBuffer.length,
+        durationMs,
+        error: (error as AxiosError).message,
+        response: (error as AxiosError).response?.data,
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Sends an audio/voice message to a WhatsApp user using a media ID.
+   *
+   * Includes a single retry with 1-second delay on network failures.
+   *
+   * @param phoneNumber - Recipient phone number (international format)
+   * @param mediaId - Meta WhatsApp media ID
+   * @returns API response with message ID
+   */
+  async sendAudioMessage(
+    phoneNumber: string,
+    mediaId: string,
+  ): Promise<SendMessageResponse> {
+    const payload: SendAudioMessagePayload = {
+      messaging_product: 'whatsapp',
+      recipient_type: 'individual',
+      to: phoneNumber,
+      type: 'audio',
+      audio: {
+        id: mediaId,
+      },
+    };
+
+    const endpoint = `/${config.whatsapp.phoneNumberId}/messages`;
+
+    try {
+      const response = await this.client.post<SendMessageResponse>(endpoint, payload);
+
+      logger.info('Audio message sent successfully', {
+        phoneNumber,
+        mediaId,
+        messageId: response.data.messages?.[0]?.id,
+      });
+
+      return response.data;
+    } catch (error) {
+      logger.warn('First attempt to send audio message failed, retrying...', {
+        phoneNumber,
+        mediaId,
+        error: (error as AxiosError).message,
+      });
+
+      await this.delay(1000);
+
+      try {
+        const retryResponse = await this.client.post<SendMessageResponse>(endpoint, payload);
+
+        logger.info('Audio message sent successfully on retry', {
+          phoneNumber,
+          mediaId,
+          messageId: retryResponse.data.messages?.[0]?.id,
+        });
+
+        return retryResponse.data;
+      } catch (retryError) {
+        logger.error('Failed to send audio message after retry', {
+          phoneNumber,
+          mediaId,
           error: (retryError as AxiosError).message,
           response: (retryError as AxiosError).response?.data,
         });
