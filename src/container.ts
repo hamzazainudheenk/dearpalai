@@ -158,7 +158,8 @@ class Container {
         this.textProcessor,
         this.voiceProcessor,
         this.whatsAppService,
-        this.conversationStore
+        this.conversationStore,
+        this.ttsService
       );
     }
     return this._messageProcessor;

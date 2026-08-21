@@ -104,7 +104,7 @@ class Container {
     }
     get messageProcessor() {
         if (!this._messageProcessor) {
-            this._messageProcessor = new message_processor_1.MessageProcessor(this.textProcessor, this.voiceProcessor, this.whatsAppService, this.conversationStore);
+            this._messageProcessor = new message_processor_1.MessageProcessor(this.textProcessor, this.voiceProcessor, this.whatsAppService, this.conversationStore, this.ttsService);
         }
         return this._messageProcessor;
     }
