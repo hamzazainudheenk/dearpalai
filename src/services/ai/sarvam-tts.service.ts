@@ -28,7 +28,7 @@ export class SarvamTextToSpeechService implements ITextToSpeechService {
         text,
         target_language_code: 'ml-IN',
         model: 'bulbul:v3',
-        speaker: 'shubh',
+        speaker: 'ritu',
         output_audio_codec: 'opus',
         speech_sample_rate: 24000,
       });
