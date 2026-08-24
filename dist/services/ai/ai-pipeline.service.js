@@ -113,10 +113,13 @@ class AIPipelineService {
                     source: 'greeting',
                 };
             }
-            // Stage 3: RAG Retrieval + Sarvam 105B Generation
+            // Stage 3: RAG Retrieval + LLM Generation
             logger_1.logger.info('Pipeline: RAGService query started', { messageTextLength: messageText.length });
             const ragStart = Date.now();
-            const ragResponse = await this.ragService.generateAnswer(messageText, { messageId: message.messageId });
+            const ragResponse = await this.ragService.generateAnswer(messageText, {
+                messageId: message.messageId,
+                phoneNumber: message.phoneNumber,
+            });
             const ragDurationMs = Date.now() - ragStart;
             logger_1.logger.info(`[PERF] messageId=${message.messageId} stage=rag_total durationMs=${ragDurationMs}`);
             logger_1.logger.info('Pipeline: RAGService query complete', {
