@@ -1,6 +1,6 @@
 import { IConversationStore } from './types/index';
 import { WhatsAppService } from './services/whatsapp/whatsapp.service';
-import { ISpeechService, ITextToSpeechService, IEmbeddingService, IRiskAssessmentService, IDecisionEngine, IAIPipeline } from './services/ai/interfaces';
+import { ISpeechService, ITextToSpeechService, IEmbeddingService, IRiskAssessmentService, IDecisionEngine, IAIPipeline, IChatService } from './services/ai/interfaces';
 import { RAGService } from './services/knowledge/rag.service';
 import { SarvamChatService } from './services/ai/sarvam-chat.service';
 import { MessageProcessor } from './services/processing/message.processor';
@@ -19,6 +19,7 @@ declare class Container {
     private _embeddingService?;
     private _ragService?;
     private _riskAssessmentService?;
+    private _chatService?;
     private _sarvamChatService?;
     private _decisionEngine?;
     private _aiPipeline?;
@@ -31,6 +32,7 @@ declare class Container {
     get speechService(): ISpeechService;
     get ttsService(): ITextToSpeechService;
     get embeddingService(): IEmbeddingService;
+    get chatService(): IChatService;
     /** Production Verified RAG Service */
     get ragService(): RAGService;
     get riskAssessmentService(): IRiskAssessmentService;

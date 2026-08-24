@@ -1,14 +1,13 @@
-import { IDecisionEngine } from './interfaces';
+import { IDecisionEngine, IChatService } from './interfaces';
 import { DecisionResult, TranscriptionResult, RagResult, RiskAssessmentResult } from '../../types/index';
-import { SarvamChatService } from './sarvam-chat.service';
 export declare class DecisionEngineService implements IDecisionEngine {
-    private readonly sarvamChatService;
-    constructor(sarvamChatService: SarvamChatService);
+    private readonly chatService;
+    constructor(chatService: IChatService);
     /**
-     * Makes a decision on how to respond to a message by invoking SarvamChatService.
+     * Makes a decision on how to respond to a message by invoking the configured IChatService.
      *
      * @param input - Aggregated pipeline outputs (transcript or text message)
-     * @returns Decision result containing Sarvam AI generated reply
+     * @returns Decision result containing AI generated reply
      */
     decide(input: {
         message: string;

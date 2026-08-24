@@ -38,6 +38,23 @@ export interface IRiskAssessmentService {
     /** Assess the risk level of a message */
     assess(message: string, context?: Record<string, unknown>): Promise<RiskAssessmentResult>;
 }
+export interface CustomCompletionOptions {
+    temperature?: number;
+    maxTokens?: number;
+    reasoningEffort?: 'low' | 'medium' | 'high';
+    isRetry?: boolean;
+    outerStartTime?: number;
+}
+/**
+ * Chat/LLM service interface.
+ * Generates conversational completions from user prompts and system context.
+ */
+export interface IChatService {
+    /** Generate a standard response to a user message */
+    generateResponse(userMessage: string): Promise<string>;
+    /** Generate a custom grounded completion with system prompt and options */
+    generateCustomCompletion(systemPrompt: string, userMessage: string, options?: CustomCompletionOptions): Promise<string>;
+}
 /**
  * Decision engine service interface.
  * Determines the final response based on all pipeline outputs.

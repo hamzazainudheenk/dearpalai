@@ -10,7 +10,9 @@ const rag_service_1 = require("./services/knowledge/rag.service");
 const risk_assessment_service_1 = require("./services/ai/risk-assessment.service");
 const decision_engine_service_1 = require("./services/ai/decision-engine.service");
 const sarvam_chat_service_1 = require("./services/ai/sarvam-chat.service");
+const openai_chat_service_1 = require("./services/ai/openai-chat.service");
 const ai_pipeline_service_1 = require("./services/ai/ai-pipeline.service");
+const ai_1 = require("./config/ai");
 // Processing
 const message_processor_1 = require("./services/processing/message.processor");
 const text_processor_1 = require("./services/processing/text.processor");
@@ -51,10 +53,22 @@ class Container {
         }
         return this._embeddingService;
     }
+    get chatService() {
+        if (!this._chatService) {
+            const provider = (process.env.AI_PROVIDER || ai_1.aiConfig.aiProvider || 'openai').toLowerCase();
+            if (provider === 'sarvam') {
+                this._chatService = new sarvam_chat_service_1.SarvamChatService();
+            }
+            else {
+                this._chatService = new openai_chat_service_1.OpenAIChatService();
+            }
+        }
+        return this._chatService;
+    }
     /** Production Verified RAG Service */
     get ragService() {
         if (!this._ragService) {
-            this._ragService = new rag_service_1.RAGService();
+            this._ragService = new rag_service_1.RAGService(this.chatService);
         }
         return this._ragService;
     }
@@ -72,7 +86,7 @@ class Container {
     }
     get decisionEngine() {
         if (!this._decisionEngine) {
-            this._decisionEngine = new decision_engine_service_1.DecisionEngineService(this.sarvamChatService);
+            this._decisionEngine = new decision_engine_service_1.DecisionEngineService(this.chatService);
         }
         return this._decisionEngine;
     }

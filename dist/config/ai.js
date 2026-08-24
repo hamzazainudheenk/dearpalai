@@ -11,6 +11,8 @@ function optionalEnv(key, defaultValue) {
     return process.env[key] || defaultValue;
 }
 exports.aiConfig = {
+    /** Active AI/LLM Provider ('openai' or 'sarvam') */
+    aiProvider: optionalEnv('AI_PROVIDER', 'openai'),
     /** Sarvam AI Speech-to-Text configuration */
     sarvam: {
         apiKey: optionalEnv('SARVAM_API_KEY', ''),
@@ -30,11 +32,11 @@ exports.aiConfig = {
     /** OpenAI / LLM configuration */
     openai: {
         apiKey: optionalEnv('OPENAI_API_KEY', ''),
-        model: optionalEnv('OPENAI_MODEL', 'gpt-4'),
+        model: optionalEnv('OPENAI_MODEL', 'gpt-4o'),
         /** Max tokens for completions */
-        maxTokens: parseInt(optionalEnv('OPENAI_MAX_TOKENS', '1024'), 10),
+        maxTokens: parseInt(optionalEnv('OPENAI_MAX_TOKENS', '3072'), 10),
         /** Temperature for completions */
-        temperature: parseFloat(optionalEnv('OPENAI_TEMPERATURE', '0.7')),
+        temperature: parseFloat(optionalEnv('OPENAI_TEMPERATURE', '0.3')),
     },
     /** OpenAI Embedding API configuration (text-embedding-3-small, 384 dimensions) */
     embedding: {

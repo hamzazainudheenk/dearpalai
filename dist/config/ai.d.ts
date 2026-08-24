@@ -5,6 +5,8 @@
  * Loaded from environment variables with sensible defaults.
  */
 export declare const aiConfig: {
+    /** Active AI/LLM Provider ('openai' or 'sarvam') */
+    readonly aiProvider: string;
     /** Sarvam AI Speech-to-Text configuration */
     readonly sarvam: {
         readonly apiKey: string;

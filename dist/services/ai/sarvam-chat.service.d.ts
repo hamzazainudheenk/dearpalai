@@ -1,11 +1,7 @@
-export interface SarvamCustomCompletionOptions {
-    temperature?: number;
-    maxTokens?: number;
-    reasoningEffort?: 'low' | 'medium' | 'high';
-    isRetry?: boolean;
-    outerStartTime?: number;
+import { IChatService, CustomCompletionOptions } from './interfaces';
+export interface SarvamCustomCompletionOptions extends CustomCompletionOptions {
 }
-export declare class SarvamChatService {
+export declare class SarvamChatService implements IChatService {
     private client;
     private readonly systemPrompt;
     generateResponse(userMessage: string): Promise<string>;

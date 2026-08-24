@@ -2712,3 +2712,47 @@
 {"cleanPhone":"919876543210","level":"info","message":"Synced conversation to Supabase","patientId":null,"service":"dearpal-whatsapp","timestamp":"2026-08-21 06:40:55.039"}
 {"level":"info","message":"[PERF] messageId=msg_audio_1 stage=persistence durationMs=184","service":"dearpal-whatsapp","timestamp":"2026-08-21 06:40:55.039"}
 {"conversationId":"d47173a4-1f63-4804-b673-9ec1c91fd9a6","level":"info","message":"Message processing complete","messageId":"msg_audio_1","service":"dearpal-whatsapp","source":"rag","success":true,"timestamp":"2026-08-21 06:40:55.040"}
+{"attempt":1,"isRetry":false,"level":"info","maxTokens":3072,"message":"Calling OpenAI Chat Completion","model":"gpt-4o","provider":"openai","service":"dearpal-whatsapp","temperature":0.3,"timestamp":"2026-08-24 21:31:35.156","userMessageLength":5}
+{"level":"error","message":"OPENAI_API_KEY environment variable is missing or invalid","service":"dearpal-whatsapp","timestamp":"2026-08-24 21:31:35.168"}
+{"durationMs":598,"isTranslated":true,"level":"info","message":"Query translation completed","originalTextLength":36,"retrievalTextLength":26,"service":"dearpal-whatsapp","sourceLanguage":"ml","timestamp":"2026-08-24 21:31:35.780"}
+{"level":"info","message":"[PERF] stage=translation durationMs=600","service":"dearpal-whatsapp","timestamp":"2026-08-24 21:31:35.781"}
+{"isTranslated":true,"level":"info","message":"RAG query started","originalTextLength":36,"retrievalTextLength":26,"service":"dearpal-whatsapp","sourceLanguage":"ml","threshold":0.3,"timestamp":"2026-08-24 21:31:35.782","topK":5}
+{"level":"info","message":"Vector search started","queryLength":26,"service":"dearpal-whatsapp","threshold":0.3,"timestamp":"2026-08-24 21:31:35.784","topK":5}
+{"attempt":1,"isRetry":false,"level":"info","maxTokens":3072,"message":"Calling OpenAI Chat Completion","model":"gpt-4o","provider":"openai","service":"dearpal-whatsapp","temperature":0.3,"timestamp":"2026-08-24 21:31:36.473","userMessageLength":5}
+{"level":"info","message":"[PERF] stage=llm provider=openai model=gpt-4o durationMs=2746","service":"dearpal-whatsapp","timestamp":"2026-08-24 21:31:39.217"}
+{"level":"info","message":"[LLM_PERF] attempt=1 provider=openai model=gpt-4o durationMs=2746 finishReason=stop promptTokens=149 completionTokens=9 totalTokens=158","service":"dearpal-whatsapp","timestamp":"2026-08-24 21:31:39.219"}
+{"level":"info","message":"[LLM_PERF] totalAttempts=1 totalLlmDurationMs=2748","service":"dearpal-whatsapp","timestamp":"2026-08-24 21:31:39.219"}
+{"dimensions":384,"durationMs":3842,"level":"info","message":"OpenAI embedding generated","model":"text-embedding-3-small","promptTokens":6,"service":"dearpal-whatsapp","textLength":26,"timestamp":"2026-08-24 21:31:39.627"}
+{"durationMs":412,"isTranslated":true,"level":"info","message":"Query translation completed","originalTextLength":36,"retrievalTextLength":26,"service":"dearpal-whatsapp","sourceLanguage":"ml","timestamp":"2026-08-24 21:31:39.637"}
+{"level":"info","message":"[PERF] stage=embedding durationMs=3843","service":"dearpal-whatsapp","timestamp":"2026-08-24 21:31:39.628"}
+{"dimensions":384,"level":"info","message":"Query embedding generated","model":"text-embedding-3-small","service":"dearpal-whatsapp","timestamp":"2026-08-24 21:31:39.628"}
+{"level":"info","message":"[PERF] stage=translation durationMs=413","service":"dearpal-whatsapp","timestamp":"2026-08-24 21:31:39.638"}
+{"isTranslated":true,"level":"info","message":"RAG query started","originalTextLength":36,"retrievalTextLength":26,"service":"dearpal-whatsapp","sourceLanguage":"ml","threshold":0.3,"timestamp":"2026-08-24 21:31:39.639","topK":5}
+{"level":"info","message":"Vector search started","queryLength":26,"service":"dearpal-whatsapp","threshold":0.3,"timestamp":"2026-08-24 21:31:39.640","topK":5}
+{"dimensions":384,"durationMs":258,"level":"info","message":"OpenAI embedding generated","model":"text-embedding-3-small","promptTokens":6,"service":"dearpal-whatsapp","textLength":26,"timestamp":"2026-08-24 21:31:39.900"}
+{"level":"info","message":"[PERF] stage=embedding durationMs=260","service":"dearpal-whatsapp","timestamp":"2026-08-24 21:31:39.901"}
+{"dimensions":384,"level":"info","message":"Query embedding generated","model":"text-embedding-3-small","service":"dearpal-whatsapp","timestamp":"2026-08-24 21:31:39.902"}
+{"level":"info","message":"[PERF] stage=vector_search_rpc durationMs=1316","service":"dearpal-whatsapp","timestamp":"2026-08-24 21:31:40.945"}
+{"level":"info","message":"[PERF] stage=vector_search_rpc durationMs=1048","service":"dearpal-whatsapp","timestamp":"2026-08-24 21:31:40.951"}
+{"level":"info","message":"Vector search completed","numberOfResults":5,"service":"dearpal-whatsapp","timestamp":"2026-08-24 21:31:40.947","topSimilarityScore":0.3801}
+{"level":"info","message":"[PERF] stage=rag_vector_retrieval durationMs=5165","service":"dearpal-whatsapp","timestamp":"2026-08-24 21:31:40.948"}
+{"level":"info","message":"Vector retrieval completed for RAG","numberOfChunksRetrieved":5,"service":"dearpal-whatsapp","timestamp":"2026-08-24 21:31:40.949","topScore":0.3801}
+{"level":"info","message":"RAG LLM completion started","service":"dearpal-whatsapp","timestamp":"2026-08-24 21:31:40.950"}
+{"attempt":1,"isRetry":false,"level":"info","maxTokens":3584,"message":"Calling OpenAI Chat Completion","model":"gpt-4o","provider":"openai","service":"dearpal-whatsapp","temperature":0.3,"timestamp":"2026-08-24 21:31:40.951","userMessageLength":3249}
+{"level":"info","message":"Vector search completed","numberOfResults":5,"service":"dearpal-whatsapp","timestamp":"2026-08-24 21:31:40.951","topSimilarityScore":0.3801}
+{"level":"info","message":"[PERF] stage=rag_vector_retrieval durationMs=1312","service":"dearpal-whatsapp","timestamp":"2026-08-24 21:31:40.952"}
+{"level":"info","message":"Vector retrieval completed for RAG","numberOfChunksRetrieved":5,"service":"dearpal-whatsapp","timestamp":"2026-08-24 21:31:40.953","topScore":0.3801}
+{"level":"info","message":"RAG LLM completion started","service":"dearpal-whatsapp","timestamp":"2026-08-24 21:31:40.953"}
+{"attempt":1,"isRetry":false,"level":"info","maxTokens":3584,"message":"Calling OpenAI Chat Completion","model":"gpt-4o","provider":"openai","service":"dearpal-whatsapp","temperature":0.3,"timestamp":"2026-08-24 21:31:40.954","userMessageLength":3249}
+{"level":"info","message":"[PERF] stage=llm provider=openai model=gpt-4o durationMs=3191","service":"dearpal-whatsapp","timestamp":"2026-08-24 21:31:44.142"}
+{"level":"info","message":"[LLM_PERF] attempt=1 provider=openai model=gpt-4o durationMs=3191 finishReason=stop promptTokens=3298 completionTokens=128 totalTokens=3426","service":"dearpal-whatsapp","timestamp":"2026-08-24 21:31:44.142"}
+{"level":"info","message":"[LLM_PERF] totalAttempts=1 totalLlmDurationMs=3191","service":"dearpal-whatsapp","timestamp":"2026-08-24 21:31:44.142"}
+{"level":"info","message":"[PERF] stage=llm durationMs=3191","service":"dearpal-whatsapp","timestamp":"2026-08-24 21:31:44.142"}
+{"level":"info","message":"RAG LLM response received","service":"dearpal-whatsapp","timestamp":"2026-08-24 21:31:44.143"}
+{"level":"info","message":"RAG generation completed successfully","service":"dearpal-whatsapp","timestamp":"2026-08-24 21:31:44.143"}
+{"level":"info","message":"[PERF] stage=llm provider=openai model=gpt-4o durationMs=3396","service":"dearpal-whatsapp","timestamp":"2026-08-24 21:31:44.350"}
+{"level":"info","message":"[LLM_PERF] attempt=1 provider=openai model=gpt-4o durationMs=3396 finishReason=stop promptTokens=3298 completionTokens=121 totalTokens=3419","service":"dearpal-whatsapp","timestamp":"2026-08-24 21:31:44.350"}
+{"level":"info","message":"[LLM_PERF] totalAttempts=1 totalLlmDurationMs=3396","service":"dearpal-whatsapp","timestamp":"2026-08-24 21:31:44.350"}
+{"level":"info","message":"[PERF] stage=llm durationMs=3396","service":"dearpal-whatsapp","timestamp":"2026-08-24 21:31:44.350"}
+{"level":"info","message":"RAG LLM response received","service":"dearpal-whatsapp","timestamp":"2026-08-24 21:31:44.351"}
+{"level":"info","message":"RAG generation completed successfully","service":"dearpal-whatsapp","timestamp":"2026-08-24 21:31:44.351"}

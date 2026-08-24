@@ -9,6 +9,7 @@ import {
   IRiskAssessmentService,
   IDecisionEngine,
   IAIPipeline,
+  IChatService,
 } from '@services/ai/interfaces';
 import { SarvamSpeechService } from '@services/ai/sarvam-speech.service';
 import { SarvamTextToSpeechService } from '@services/ai/sarvam-tts.service';
@@ -17,7 +18,9 @@ import { RAGService } from '@services/knowledge/rag.service';
 import { RiskAssessmentService } from '@services/ai/risk-assessment.service';
 import { DecisionEngineService } from '@services/ai/decision-engine.service';
 import { SarvamChatService } from '@services/ai/sarvam-chat.service';
+import { OpenAIChatService } from '@services/ai/openai-chat.service';
 import { AIPipelineService } from '@services/ai/ai-pipeline.service';
+import { aiConfig } from '@config/ai';
 
 // Processing
 import { MessageProcessor } from '@services/processing/message.processor';
@@ -44,6 +47,7 @@ class Container {
   private _embeddingService?: IEmbeddingService;
   private _ragService?: RAGService;
   private _riskAssessmentService?: IRiskAssessmentService;
+  private _chatService?: IChatService;
   private _sarvamChatService?: SarvamChatService;
   private _decisionEngine?: IDecisionEngine;
   private _aiPipeline?: IAIPipeline;
@@ -85,10 +89,22 @@ class Container {
     return this._embeddingService;
   }
 
+  get chatService(): IChatService {
+    if (!this._chatService) {
+      const provider = (process.env.AI_PROVIDER || aiConfig.aiProvider || 'openai').toLowerCase();
+      if (provider === 'sarvam') {
+        this._chatService = new SarvamChatService();
+      } else {
+        this._chatService = new OpenAIChatService();
+      }
+    }
+    return this._chatService;
+  }
+
   /** Production Verified RAG Service */
   get ragService(): RAGService {
     if (!this._ragService) {
-      this._ragService = new RAGService();
+      this._ragService = new RAGService(this.chatService);
     }
     return this._ragService;
   }
@@ -109,7 +125,7 @@ class Container {
 
   get decisionEngine(): IDecisionEngine {
     if (!this._decisionEngine) {
-      this._decisionEngine = new DecisionEngineService(this.sarvamChatService);
+      this._decisionEngine = new DecisionEngineService(this.chatService);
     }
     return this._decisionEngine;
   }

@@ -1,6 +1,7 @@
 import { VectorSearchService, VectorSearchResult } from './vector-search.service';
 import { RAGContextBuilder } from './rag-context-builder.service';
 import { QueryTranslationService } from './query-translation.service';
+import { IChatService } from '@services/ai/interfaces';
 import { SarvamChatService } from '@services/ai/sarvam-chat.service';
 import { supabaseAdmin } from '@config/supabase';
 import { logger } from '@utils/logger';
@@ -30,7 +31,11 @@ export class RAGService {
   private vectorSearchService = new VectorSearchService();
   private contextBuilder = new RAGContextBuilder();
   private translationService = new QueryTranslationService();
-  private sarvamChatService = new SarvamChatService();
+  private chatService: IChatService;
+
+  constructor(chatService?: IChatService) {
+    this.chatService = chatService || new SarvamChatService();
+  }
 
   private readonly STRICT_SYSTEM_PROMPT = `നിങ്ങൾ "ഡിയർ പാൽ" ആണ്.
 
@@ -331,12 +336,12 @@ ${conversationHistory}
 USER QUESTION:
 ${trimmedQuery}`;
 
-    // 7. Generate completion with Sarvam 105B (maxTokens: 3584, reasoningEffort: 'low')
-    logger.info('Sarvam 105B RAG completion started');
+    // 7. Generate completion with configured LLM chat service
+    logger.info('RAG LLM completion started');
     let answerText = '';
     const llmStart = Date.now();
     try {
-      answerText = await this.sarvamChatService.generateCustomCompletion(
+      answerText = await this.chatService.generateCustomCompletion(
         this.STRICT_SYSTEM_PROMPT,
         userPrompt,
         {
@@ -347,12 +352,12 @@ ${trimmedQuery}`;
       );
       const llmDurationMs = Date.now() - llmStart;
       logger.info(`[PERF] stage=llm durationMs=${llmDurationMs}`);
-      logger.info('Sarvam RAG response received');
+      logger.info('RAG LLM response received');
     } catch (err) {
       const llmDurationMs = Date.now() - llmStart;
       logger.info(`[PERF] stage=llm_failed durationMs=${llmDurationMs}`);
-      logger.error('Sarvam 105B generation failed', { error: (err as Error).message });
-      throw new Error(`Sarvam 105B generation error: ${(err as Error).message}`);
+      logger.error('RAG LLM generation failed', { error: (err as Error).message });
+      throw new Error(`RAG LLM generation error: ${(err as Error).message}`);
     }
 
     logger.info('RAG generation completed successfully');

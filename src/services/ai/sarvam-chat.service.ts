@@ -1,15 +1,10 @@
 import { SarvamAIClient } from 'sarvamai';
 import { logger } from '@utils/logger';
+import { IChatService, CustomCompletionOptions } from './interfaces';
 
-export interface SarvamCustomCompletionOptions {
-  temperature?: number;
-  maxTokens?: number;
-  reasoningEffort?: 'low' | 'medium' | 'high';
-  isRetry?: boolean;
-  outerStartTime?: number;
-}
+export interface SarvamCustomCompletionOptions extends CustomCompletionOptions {}
 
-export class SarvamChatService {
+export class SarvamChatService implements IChatService {
   private client = new SarvamAIClient({
     apiSubscriptionKey: process.env.SARVAM_API_KEY!,
   });
