@@ -11,10 +11,11 @@ exports.errorMiddleware = errorMiddleware;
 const logger_1 = require("../utils/logger");
 /** Custom application error with HTTP status code */
 class AppError extends Error {
-    constructor(message, statusCode, isOperational = true) {
+    constructor(message, statusCode, isOperational = true, code) {
         super(message);
         this.statusCode = statusCode;
         this.isOperational = isOperational;
+        this.code = code;
         Object.setPrototypeOf(this, AppError.prototype);
     }
 }
@@ -59,10 +60,12 @@ function errorMiddleware(err, _req, res, _next) {
         isOperational,
         stack: err.stack,
     });
+    const code = err instanceof AppError ? err.code : undefined;
     // Send structured response
     res.status(statusCode).json({
         status: 'error',
         statusCode,
+        ...(code && { code }),
         message: isOperational ? err.message : 'An unexpected error occurred',
         ...(process.env.NODE_ENV !== 'production' && { stack: err.stack }),
     });

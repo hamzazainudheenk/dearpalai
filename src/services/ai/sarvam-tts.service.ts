@@ -4,7 +4,7 @@ import { logger } from '@utils/logger';
 
 /**
  * Sarvam Text-to-Speech Service using Bulbul v3.
- * Converts Malayalam response text into spoken audio Buffer (Opus codec).
+ * Converts Malayalam response text into spoken audio Buffer (MP3 codec).
  */
 export class SarvamTextToSpeechService implements ITextToSpeechService {
   private client = new SarvamAIClient({
@@ -15,7 +15,7 @@ export class SarvamTextToSpeechService implements ITextToSpeechService {
    * Converts text into spoken audio Buffer using Sarvam Bulbul v3.
    *
    * @param text - Final Malayalam text response
-   * @returns Node.js Buffer containing the decoded Opus audio data
+   * @returns Node.js Buffer containing the decoded MP3 audio data
    */
   async textToSpeech(text: string): Promise<Buffer> {
     const startTime = Date.now();
@@ -29,7 +29,7 @@ export class SarvamTextToSpeechService implements ITextToSpeechService {
         target_language_code: 'ml-IN',
         model: 'bulbul:v3',
         speaker: 'ritu',
-        output_audio_codec: 'opus',
+        output_audio_codec: 'mp3',
         speech_sample_rate: 24000,
       });
 
@@ -47,8 +47,8 @@ export class SarvamTextToSpeechService implements ITextToSpeechService {
         durationMs,
         audioSizeBytes: audioBuffer.length,
         model: 'bulbul:v3',
-        codec: 'opus',
-        speaker: 'shubh',
+        codec: 'mp3',
+        speaker: 'ritu',
         sampleRate: 24000,
       });
 

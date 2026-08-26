@@ -15,6 +15,9 @@ const session_routes_1 = __importDefault(require("./session.routes"));
 const conversation_routes_1 = __importDefault(require("./conversation.routes"));
 const dashboard_routes_1 = __importDefault(require("./dashboard.routes"));
 const admin_knowledge_routes_1 = __importDefault(require("./admin-knowledge.routes"));
+const patient_auth_routes_1 = __importDefault(require("./patient-auth.routes"));
+const caretaker_auth_routes_1 = __importDefault(require("./caretaker-auth.routes"));
+const chat_routes_1 = __importDefault(require("./chat.routes"));
 const router = (0, express_1.Router)();
 /**
  * GET /health
@@ -37,5 +40,10 @@ router.use('/api/patients/:id/conversations', conversation_routes_1.default);
 router.use('/api/dashboard', dashboard_routes_1.default);
 /** Mount Admin Knowledge Base API routes */
 router.use('/api/admin/knowledge', admin_knowledge_routes_1.default);
+/** Mount Patient and Caretaker account routes (Phase 1 — DearPal Care) */
+router.use('/api/patient', patient_auth_routes_1.default);
+router.use('/api/caretaker', caretaker_auth_routes_1.default);
+/** Mount Chat Bridge routes (Phase 2 — DearPal Care) */
+router.use('/api/chat', chat_routes_1.default);
 exports.default = router;
 //# sourceMappingURL=index.js.map

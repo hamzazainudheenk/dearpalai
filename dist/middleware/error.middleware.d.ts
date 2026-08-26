@@ -9,7 +9,10 @@ import { Request, Response, NextFunction } from 'express';
 export declare class AppError extends Error {
     readonly statusCode: number;
     readonly isOperational: boolean;
-    constructor(message: string, statusCode: number, isOperational?: boolean);
+    /** Machine-readable error code, e.g. 'INVALID_CARETAKER_CODE'. Optional —
+     *  existing call sites that don't pass one are unaffected. */
+    readonly code?: string;
+    constructor(message: string, statusCode: number, isOperational?: boolean, code?: string);
 }
 /** Specific error types for common failure scenarios */
 export declare class MediaExpiredError extends AppError {

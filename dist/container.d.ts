@@ -7,6 +7,7 @@ import { MessageProcessor } from './services/processing/message.processor';
 import { TextProcessor } from './services/processing/text.processor';
 import { VoiceProcessor } from './services/processing/voice.processor';
 import { WebhookController } from './controllers/webhook.controller';
+import { ChatService } from './services/chat.service';
 /**
  * Application service container.
  *
@@ -28,6 +29,7 @@ declare class Container {
     private _voiceProcessor?;
     private _messageProcessor?;
     private _webhookController?;
+    private _chatBridgeService?;
     get whatsAppService(): WhatsAppService;
     get speechService(): ISpeechService;
     get ttsService(): ITextToSpeechService;
@@ -44,6 +46,12 @@ declare class Container {
     get voiceProcessor(): VoiceProcessor;
     get messageProcessor(): MessageProcessor;
     get webhookController(): WebhookController;
+    /** Same RAGService (and therefore same GPT-4o + RAG + system prompt) and
+     *  same Sarvam STT/TTS instances WhatsApp uses — no second AI stack.
+     *  Named `chatBridgeService` (not `chatService`) to avoid colliding with
+     *  the existing `chatService` getter above, which is the raw LLM chat
+     *  client (OpenAI/Sarvam) the RAG pipeline itself calls. */
+    get chatBridgeService(): ChatService;
 }
 export declare const container: Container;
 export {};

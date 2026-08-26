@@ -11,6 +11,9 @@ import sessionRoutes from './session.routes';
 import conversationRoutes from './conversation.routes';
 import dashboardRoutes from './dashboard.routes';
 import adminKnowledgeRoutes from './admin-knowledge.routes';
+import patientAuthRoutes from './patient-auth.routes';
+import caretakerAuthRoutes from './caretaker-auth.routes';
+import chatRoutes from './chat.routes';
 
 const router = Router();
 
@@ -38,5 +41,12 @@ router.use('/api/dashboard', dashboardRoutes);
 
 /** Mount Admin Knowledge Base API routes */
 router.use('/api/admin/knowledge', adminKnowledgeRoutes);
+
+/** Mount Patient and Caretaker account routes (Phase 1 — DearPal Care) */
+router.use('/api/patient', patientAuthRoutes);
+router.use('/api/caretaker', caretakerAuthRoutes);
+
+/** Mount Chat Bridge routes (Phase 2 — DearPal Care) */
+router.use('/api/chat', chatRoutes);
 
 export default router;

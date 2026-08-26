@@ -9,23 +9,26 @@ export class SarvamSpeechService implements ISpeechService {
     apiSubscriptionKey: process.env.SARVAM_API_KEY!,
   });
 
-  async transcribe(audioPath: string): Promise<TranscriptionResult> {
-    logger.info("Calling Sarvam Speech-to-Text", { audioPath });
+  async transcribe(audioPath: string, languageCode: string = "ml-IN"): Promise<TranscriptionResult> {
+    logger.info("Calling Sarvam Speech-to-Text", { audioPath, languageCode });
 
     const audioFile = fs.createReadStream(audioPath);
 
     const response = await this.client.speechToText.transcribe({
       file: audioFile,
       model: "saaras:v3",
+      language_code: languageCode as any,
       mode: "transcribe",
     });
-    console.log(response);
-    logger.info("Sarvam transcription complete");
+    logger.info("Sarvam transcription complete", {
+      transcript: response.transcript,
+      language: response.language_code,
+    });
 
     return {
       text: response.transcript,
       confidence: 1.0,
-      language: response.language_code ?? "unknown",
+      language: response.language_code ?? languageCode,
       durationSeconds: 0,
     };
   }

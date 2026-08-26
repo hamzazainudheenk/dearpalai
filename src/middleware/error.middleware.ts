@@ -12,11 +12,15 @@ import { logger } from '@utils/logger';
 export class AppError extends Error {
   public readonly statusCode: number;
   public readonly isOperational: boolean;
+  /** Machine-readable error code, e.g. 'INVALID_CARETAKER_CODE'. Optional —
+   *  existing call sites that don't pass one are unaffected. */
+  public readonly code?: string;
 
-  constructor(message: string, statusCode: number, isOperational = true) {
+  constructor(message: string, statusCode: number, isOperational = true, code?: string) {
     super(message);
     this.statusCode = statusCode;
     this.isOperational = isOperational;
+    this.code = code;
     Object.setPrototypeOf(this, AppError.prototype);
   }
 }
@@ -68,10 +72,13 @@ export function errorMiddleware(
     stack: err.stack,
   });
 
+  const code = err instanceof AppError ? err.code : undefined;
+
   // Send structured response
   res.status(statusCode).json({
     status: 'error',
     statusCode,
+    ...(code && { code }),
     message: isOperational ? err.message : 'An unexpected error occurred',
     ...(process.env.NODE_ENV !== 'production' && { stack: err.stack }),
   });

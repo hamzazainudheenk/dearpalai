@@ -24,7 +24,7 @@ import {
  */
 export interface ISpeechService {
   /** Transcribe an audio file to text */
-  transcribe(audioPath: string): Promise<TranscriptionResult>;
+  transcribe(audioPath: string, languageCode?: string): Promise<TranscriptionResult>;
 }
 
 // ─── Embedding ───────────────────────────────────────────

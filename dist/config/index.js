@@ -73,6 +73,27 @@ exports.config = {
         serviceRoleKey: optionalEnv('SUPABASE_SERVICE_ROLE_KEY', ''),
         anonKey: optionalEnv('SUPABASE_ANON_KEY', ''),
     },
+    /**
+     * Patient/Caretaker account security (Phase 1).
+     *
+     * `caretakerCodePepper` / `otpPepper` are server-side secrets mixed into
+     * the HMAC used to hash caretaker codes and OTPs at rest — never store
+     * either value in the database, only a keyed hash of it. Falls back to a
+     * dev-only default with a startup warning (see `utils/crypto.ts`); set a
+     * real value in production.
+     *
+     * `otpProvider` selects the caretaker OTP delivery mechanism:
+     *   - 'mock': development/demo only — no real SMS is sent. Refused at
+     *     startup if NODE_ENV=production (see `services/otp/otp-provider.ts`).
+     *   - anything else (default): no SMS provider is configured; OTP send
+     *     fails loudly with a clear error rather than silently faking one.
+     */
+    security: {
+        caretakerCodePepper: optionalEnv('CARETAKER_CODE_PEPPER', ''),
+        caretakerCodeEncryptionKey: optionalEnv('CARETAKER_CODE_ENCRYPTION_KEY', ''),
+        otpPepper: optionalEnv('OTP_PEPPER', ''),
+        otpProvider: optionalEnv('OTP_PROVIDER', 'none'),
+    },
     /** File paths */
     paths: {
         temp: 'temp',

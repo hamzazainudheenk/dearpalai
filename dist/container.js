@@ -21,6 +21,8 @@ const voice_processor_1 = require("./services/processing/voice.processor");
 const conversation_store_1 = require("./store/conversation.store");
 // Controllers
 const webhook_controller_1 = require("./controllers/webhook.controller");
+// Phase 2 — Chat Bridge
+const chat_service_1 = require("./services/chat.service");
 /**
  * Application service container.
  *
@@ -128,6 +130,18 @@ class Container {
             this._webhookController = new webhook_controller_1.WebhookController(this.whatsAppService, this.messageProcessor);
         }
         return this._webhookController;
+    }
+    // ─── Phase 2 — Chat Bridge ─────────────────────────────
+    /** Same RAGService (and therefore same GPT-4o + RAG + system prompt) and
+     *  same Sarvam STT/TTS instances WhatsApp uses — no second AI stack.
+     *  Named `chatBridgeService` (not `chatService`) to avoid colliding with
+     *  the existing `chatService` getter above, which is the raw LLM chat
+     *  client (OpenAI/Sarvam) the RAG pipeline itself calls. */
+    get chatBridgeService() {
+        if (!this._chatBridgeService) {
+            this._chatBridgeService = new chat_service_1.ChatService(this.ragService, this.speechService, this.ttsService);
+        }
+        return this._chatBridgeService;
     }
 }
 exports.container = new Container();

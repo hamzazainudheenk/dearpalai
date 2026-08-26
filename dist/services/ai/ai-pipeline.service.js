@@ -14,43 +14,13 @@ class AIPipelineService {
         this.decisionEngine = decisionEngine;
     }
     /**
-     * Fast intent check for conversational greetings.
-     */
-    isGreeting(text) {
-        const cleaned = text
-            .toLowerCase()
-            .trim()
-            .replace(/[^\w\s]/g, '');
-        const GREETINGS = new Set([
-            'hi',
-            'hello',
-            'hey',
-            'heyy',
-            'heyyy',
-            'hallo',
-            'good morning',
-            'good afternoon',
-            'good evening',
-            'good day',
-            'assalamu alaikum',
-            'assalam alaikum',
-            'salaam',
-            'salam',
-            'namaste',
-            'namaskar',
-            'hola',
-        ]);
-        return GREETINGS.has(cleaned);
-    }
-    /**
      * Processes an incoming WhatsApp text or voice message through the production AI pipeline.
      *
      * Flow:
      * 1. Speech-to-Text (if voice message)
-     * 2. Greeting Intent Check (Fast path: returns greeting without calling RAG / Sarvam 105B)
-     * 3. RAG Retrieval + Context Assembly + Sarvam 105B Generation
-     * 4. Risk/Safety Assessment
-     * 5. WhatsApp Response Formatting
+     * 2. RAG Retrieval + Context Assembly + LLM Generation
+     * 3. Risk/Safety Assessment
+     * 4. WhatsApp Response Formatting
      */
     async process(input) {
         const { message, audioFilePath } = input;
@@ -87,31 +57,6 @@ class AIPipelineService {
                     confidence: transcription.confidence,
                     language: transcription.language,
                 });
-            }
-            // Stage 2: Fast Greeting Intent Check (Bypasses RAG & Sarvam 105B)
-            const greetStart = Date.now();
-            const isGreetingIntent = this.isGreeting(messageText);
-            const greetDurationMs = Date.now() - greetStart;
-            logger_1.logger.info(`[PERF] messageId=${message.messageId} stage=greeting_check durationMs=${greetDurationMs}`);
-            if (isGreetingIntent) {
-                logger_1.logger.info('Pipeline: Greeting intent detected, skipping RAG/Sarvam 105B', {
-                    messageId: message.messageId,
-                });
-                // Run light risk check for completeness
-                const riskStart = Date.now();
-                const riskAssessment = await this.riskAssessmentService.assess(messageText, {
-                    phoneNumber: message.phoneNumber,
-                    messageType: message.messageType,
-                });
-                const riskDurationMs = Date.now() - riskStart;
-                logger_1.logger.info(`[PERF] messageId=${message.messageId} stage=risk_assessment durationMs=${riskDurationMs}`);
-                return {
-                    reply: messages_1.MessageTemplates.TEXT_RECEIVED,
-                    transcription,
-                    riskAssessment,
-                    success: true,
-                    source: 'greeting',
-                };
             }
             // Stage 3: RAG Retrieval + LLM Generation
             logger_1.logger.info('Pipeline: RAGService query started', { messageTextLength: messageText.length });
