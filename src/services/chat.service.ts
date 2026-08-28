@@ -23,16 +23,17 @@ import { logger } from '@utils/logger';
 import { RAGService } from '@services/knowledge/rag.service';
 import { ISpeechService, ITextToSpeechService } from '@services/ai/interfaces';
 import { ChatIdentity } from '@middleware/auth.middleware';
+import { SymptomExtractorService, ExtractedSymptom } from '@services/ai/symptom-extractor.service';
 
 export interface ChatMessageResult {
   reply: string;
+  detectedSymptoms?: ExtractedSymptom[];
 }
 
 export interface ChatVoiceResult {
   transcript: string;
   reply: string;
-  /** Present only when Sarvam TTS succeeded — voice replies degrade to
-   *  text-only rather than failing the whole request. */
+  detectedSymptoms?: ExtractedSymptom[];
   audioBase64?: string;
   audioMimeType?: string;
 }
@@ -47,12 +48,25 @@ function extensionFor(mimeType: string): string {
   return '.m4a';
 }
 
+export interface ChatHistoryItem {
+  id: string;
+  speaker: 'me' | 'pal';
+  body: string;
+  isVoice: boolean;
+  timestamp: string;
+}
+
 export class ChatService {
+  private readonly symptomExtractor: SymptomExtractorService;
+
   constructor(
     private readonly ragService: RAGService,
     private readonly speechService: ISpeechService,
-    private readonly ttsService: ITextToSpeechService,
-  ) {}
+    private readonly ttsService?: ITextToSpeechService,
+    symptomExtractor?: SymptomExtractorService,
+  ) {
+    this.symptomExtractor = symptomExtractor ?? new SymptomExtractorService();
+  }
 
   /** Never throws — a failed persist must not fail the user-facing chat
    *  turn (same tolerance WhatsApp's own `syncToSupabase` has). */
@@ -73,7 +87,7 @@ export class ChatService {
 
       if (identity.type === 'patient') {
         row.patient_id = identity.patientId;
-        row.phone_number = identity.mobile;
+        row.phone_number = identity.mobile || '';
       } else {
         row.caretaker_id = identity.caretakerId;
         // Context only (which patient this caretaker is linked to) — never
@@ -82,7 +96,7 @@ export class ChatService {
         // conversation_scope + caretaker_id for caretaker turns, never by
         // this patient_id.
         row.patient_id = identity.linkedPatientId;
-        row.phone_number = identity.mobile;
+        row.phone_number = identity.mobile || '';
       }
 
       const { error } = await supabaseAdmin.from('conversations').insert(row);
@@ -91,6 +105,45 @@ export class ChatService {
       }
     } catch (err) {
       logger.warn('Unexpected error persisting chat turn', { error: (err as Error).message });
+    }
+  }
+
+  /**
+   * Retrieves conversation history scoped to the caller's identity
+   * (patient or caretaker) so the mobile app displays full message history.
+   */
+  async getHistory(identity: ChatIdentity, limit = 50): Promise<ChatHistoryItem[]> {
+    try {
+      let query = supabaseAdmin
+        .from('conversations')
+        .select('id, direction, message_type, content, transcript, timestamp')
+        .eq('conversation_scope', identity.type);
+
+      if (identity.type === 'patient') {
+        query = query.eq('patient_id', identity.patientId);
+      } else {
+        query = query.eq('caretaker_id', identity.caretakerId);
+      }
+
+      const { data, error } = await query
+        .order('timestamp', { ascending: true })
+        .limit(limit);
+
+      if (error || !data) {
+        logger.warn('Failed to load chat history', { error: error?.message, scope: identity.type });
+        return [];
+      }
+
+      return data.map((row) => ({
+        id: row.id,
+        speaker: row.direction === 'inbound' ? 'me' : 'pal',
+        body: row.transcript || row.content || '',
+        isVoice: row.message_type === 'audio',
+        timestamp: row.timestamp,
+      }));
+    } catch (err) {
+      logger.warn('Unexpected error loading chat history', { error: (err as Error).message });
+      return [];
     }
   }
 
@@ -125,14 +178,21 @@ export class ChatService {
     }
 
     await this.persistTurn(identity, 'inbound', trimmed, 'text');
-    const reply = await this.generateReply(identity, trimmed);
+    const [reply, detectedSymptoms] = await Promise.all([
+      this.generateReply(identity, trimmed),
+      identity.type === 'patient'
+        ? this.symptomExtractor.extractSymptoms(trimmed).catch(() => [])
+        : Promise.resolve([]),
+    ]);
     await this.persistTurn(identity, 'outbound', reply, 'text');
 
-    return { reply };
+    return {
+      reply,
+      ...(detectedSymptoms && detectedSymptoms.length > 0 && { detectedSymptoms }),
+    };
   }
 
-  /** POST /api/chat/voice — reuses the exact same SarvamSpeechService /
-   *  SarvamTextToSpeechService WhatsApp's voice.processor.ts uses. */
+  /** POST /api/chat/voice — STT transcription + natural text reply with automatic symptom detection. */
   async sendVoiceMessage(
     identity: ChatIdentity,
     audioBuffer: Buffer,
@@ -160,25 +220,19 @@ export class ChatService {
       }
 
       await this.persistTurn(identity, 'inbound', transcript, 'audio');
-      const reply = await this.generateReply(identity, transcript);
+      const [reply, detectedSymptoms] = await Promise.all([
+        this.generateReply(identity, transcript),
+        identity.type === 'patient'
+          ? this.symptomExtractor.extractSymptoms(transcript).catch(() => [])
+          : Promise.resolve([]),
+      ]);
       await this.persistTurn(identity, 'outbound', reply, 'text');
 
-      let audioBase64: string | undefined;
-      let audioMimeType: string | undefined;
-      try {
-        const ttsBuffer = await this.ttsService.textToSpeech(reply);
-        audioBase64 = ttsBuffer.toString('base64');
-        audioMimeType = 'audio/mpeg';
-      } catch (err) {
-        // Degrade to text-only rather than failing the whole request —
-        // the reply itself is already generated and persisted.
-        logger.warn('Chat voice TTS failed; returning text-only reply', {
-          error: (err as Error).message,
-          scope: identity.type,
-        });
-      }
-
-      return { transcript, reply, audioBase64, audioMimeType };
+      return {
+        transcript,
+        reply,
+        ...(detectedSymptoms && detectedSymptoms.length > 0 && { detectedSymptoms }),
+      };
     } finally {
       try {
         fs.unlinkSync(tmpPath);

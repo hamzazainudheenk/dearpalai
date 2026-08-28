@@ -124,26 +124,26 @@ describe('ChatService.sendMessage', () => {
 describe('ChatService.sendVoiceMessage', () => {
   beforeEach(() => fakeClient.reset());
 
-  it('transcribes via the speech service, generates a reply via RAG, and synthesizes via TTS', async () => {
+  it('transcribes via the speech service, generates a reply via RAG, and extracts symptoms', async () => {
     const rag = makeRagStub('Spoken reply.');
-    const speech: ISpeechService = { transcribe: jest.fn(async () => ({ text: 'ഹലോ', confidence: 1, language: 'ml', durationSeconds: 2 })) };
-    const tts: ITextToSpeechService = { textToSpeech: jest.fn(async () => Buffer.from('fake-audio-bytes')) };
+    const speech: ISpeechService = { transcribe: jest.fn(async () => ({ text: 'എനിക്ക് ഉറക്കം വരുന്നില്ല', confidence: 1, language: 'ml', durationSeconds: 2 })) };
 
-    const service = new ChatService(rag, speech, tts);
+    const service = new ChatService(rag, speech);
     const result = await service.sendVoiceMessage(patientIdentity, Buffer.from('fake-input-audio'), 'audio/m4a');
 
-    expect(result.transcript).toBe('ഹലോ');
+    expect(result.transcript).toBe('എനിക്ക് ഉറക്കം വരുന്നില്ല');
     expect(result.reply).toBe('Spoken reply.');
-    expect(result.audioBase64).toBe(Buffer.from('fake-audio-bytes').toString('base64'));
-    expect(rag.generateAnswer).toHaveBeenCalledWith('ഹലോ', expect.objectContaining({ conversationScope: 'patient' }));
+    expect(result.detectedSymptoms).toBeDefined();
+    expect(result.detectedSymptoms?.length).toBeGreaterThan(0);
+    expect(result.detectedSymptoms?.[0].name).toBe('Sleep trouble');
+    expect(rag.generateAnswer).toHaveBeenCalledWith('എനിക്ക് ഉറക്കം വരുന്നില്ല', expect.objectContaining({ conversationScope: 'patient' }));
   });
 
-  it('degrades to a text-only reply when TTS fails, without failing the request', async () => {
+  it('delivers clean text reply for voice messages', async () => {
     const rag = makeRagStub('Spoken reply.');
     const speech: ISpeechService = { transcribe: jest.fn(async () => ({ text: 'Hello', confidence: 1, language: 'en', durationSeconds: 1 })) };
-    const tts: ITextToSpeechService = { textToSpeech: jest.fn(async () => { throw new Error('Sarvam TTS down'); }) };
 
-    const service = new ChatService(rag, speech, tts);
+    const service = new ChatService(rag, speech);
     const result = await service.sendVoiceMessage(patientIdentity, Buffer.from('audio'), 'audio/m4a');
 
     expect(result.reply).toBe('Spoken reply.');

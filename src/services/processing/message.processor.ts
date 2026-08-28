@@ -164,89 +164,24 @@ export class MessageProcessor {
           break;
       }
 
-      // Step 3: Send the reply message via WhatsApp API
+      // Step 3: Send the reply message via WhatsApp API as natural text
       if (result.reply) {
-        if (message.messageType === MessageType.AUDIO && this.ttsService) {
-          const voiceReplyStart = Date.now();
-          let sentVoiceReply = false;
-
-          try {
-            // a. Generate TTS Audio Buffer (Sarvam Bulbul v3)
-            const ttsStart = Date.now();
-            const audioBuffer = await this.ttsService.textToSpeech(result.reply);
-            const ttsDuration = Date.now() - ttsStart;
-            logger.info(`[PERF] messageId=${message.messageId} stage=tts durationMs=${ttsDuration} audioSizeBytes=${audioBuffer.length}`);
-
-            // b. Upload media to WhatsApp Cloud API
-            const uploadStart = Date.now();
-            const mediaId = await this.whatsAppService.uploadMedia(audioBuffer);
-            const uploadDuration = Date.now() - uploadStart;
-            logger.info(`[PERF] messageId=${message.messageId} stage=whatsapp_media_upload durationMs=${uploadDuration}`);
-
-            // c. Send audio message to WhatsApp user
-            const sendAudioStart = Date.now();
-            await this.whatsAppService.sendAudioMessage(message.phoneNumber, mediaId);
-            const sendAudioDuration = Date.now() - sendAudioStart;
-            logger.info(`[PERF] messageId=${message.messageId} stage=whatsapp_audio_send durationMs=${sendAudioDuration}`);
-
-            const totalVoiceReplyDuration = Date.now() - voiceReplyStart;
-            logger.info(`[PERF] messageId=${message.messageId} stage=total_voice_reply durationMs=${totalVoiceReplyDuration}`);
-            logger.info('Voice reply sent successfully via WhatsAppService', {
-              conversationId,
-              messageId: message.messageId,
-            });
-
-            sentVoiceReply = true;
-          } catch (voiceError) {
-            const voiceFailDuration = Date.now() - voiceReplyStart;
-            logger.warn('Voice reply flow failed, falling back to text message', {
-              conversationId,
-              messageId: message.messageId,
-              durationMs: voiceFailDuration,
-              error: (voiceError as Error).message,
-            });
-          }
-
-          // Fallback to text message if voice generation/upload/send failed
-          if (!sentVoiceReply) {
-            const sendStart = Date.now();
-            try {
-              await this.whatsAppService.sendTextMessage(message.phoneNumber, result.reply);
-              const sendDuration = Date.now() - sendStart;
-              logger.info(`[PERF] messageId=${message.messageId} stage=whatsapp_send_fallback durationMs=${sendDuration}`);
-              logger.info('Text fallback reply sent via WhatsAppService', {
-                conversationId,
-                messageId: message.messageId,
-              });
-            } catch (fallbackErr) {
-              logger.error('Failed to send text fallback reply via WhatsAppService', {
-                conversationId,
-                messageId: message.messageId,
-                error: (fallbackErr as Error).message,
-              });
-            }
-          }
-        } else {
-          // Standard TEXT message branch (or if ttsService is unavailable)
-          const sendStart = Date.now();
-          try {
-            await this.whatsAppService.sendTextMessage(message.phoneNumber, result.reply);
-            const sendDuration = Date.now() - sendStart;
-            logger.info(`[PERF] messageId=${message.messageId} stage=whatsapp_send durationMs=${sendDuration}`);
-            logger.info('Reply sent via WhatsAppService', {
-              conversationId,
-              messageId: message.messageId,
-              replyLength: result.reply.length,
-            });
-          } catch (error) {
-            const sendDuration = Date.now() - sendStart;
-            logger.info(`[PERF] messageId=${message.messageId} stage=whatsapp_send_failed durationMs=${sendDuration}`);
-            logger.error('Failed to send reply via WhatsAppService', {
-              conversationId,
-              messageId: message.messageId,
-              error: (error as Error).message,
-            });
-          }
+        const sendStart = Date.now();
+        try {
+          await this.whatsAppService.sendTextMessage(message.phoneNumber, result.reply);
+          const sendDuration = Date.now() - sendStart;
+          logger.info(`[PERF] messageId=${message.messageId} stage=whatsapp_send durationMs=${sendDuration}`);
+          logger.info('Reply sent successfully via WhatsAppService', {
+            conversationId,
+            messageId: message.messageId,
+          });
+        } catch (sendErr) {
+          logger.error('Failed to send text reply via WhatsAppService', {
+            conversationId,
+            messageId: message.messageId,
+            error: (sendErr as Error).message,
+          });
+          throw sendErr;
         }
       }
     } finally {

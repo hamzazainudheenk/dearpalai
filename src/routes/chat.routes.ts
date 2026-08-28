@@ -27,6 +27,9 @@ const upload = multer({
 
 router.use(authenticateChatIdentity);
 
+/** GET /api/chat/history — returns scoped conversation messages */
+router.get('/history', controller.history);
+
 /** POST /api/chat/message — { message, conversationScope } */
 router.post('/message', chatLimiter, controller.message);
 

@@ -22,7 +22,7 @@ const OTP_TTL_MS = 5 * 60 * 1000; // 5 minutes
 const RESEND_COOLDOWN_MS = 30 * 1000; // 30 seconds
 const MAX_VERIFY_ATTEMPTS = 5;
 
-export type OtpPurpose = 'caretaker_login';
+export type OtpPurpose = 'caretaker_login' | 'patient_login';
 
 export class OtpService {
   constructor(private readonly provider: OtpProvider) {}

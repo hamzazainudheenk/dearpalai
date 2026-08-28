@@ -49,7 +49,13 @@ export class ChatController {
       }
 
       const result = await this.chatService.sendMessage(identity, message);
-      res.status(200).json({ status: 'success', data: { reply: result.reply } });
+      res.status(200).json({
+        status: 'success',
+        data: {
+          reply: result.reply,
+          ...(result.detectedSymptoms && { detectedSymptoms: result.detectedSymptoms }),
+        },
+      });
     } catch (err) {
       this.handleError(err, res, 'message');
     }
@@ -98,11 +104,41 @@ export class ChatController {
         data: {
           transcript: result.transcript,
           reply: result.reply,
+          ...(result.detectedSymptoms && { detectedSymptoms: result.detectedSymptoms }),
           ...(result.audioBase64 && { audioBase64: result.audioBase64, audioMimeType: result.audioMimeType }),
         },
       });
     } catch (err) {
       this.handleError(err, res, 'voice');
+    }
+  };
+
+  /**
+   * GET /api/chat/history
+   * Scoped to the authenticated identity.
+   */
+  history = async (req: AuthenticatedChatRequest, res: Response): Promise<void> => {
+    try {
+      const identity = req.chatIdentity;
+      if (!identity) {
+        res.status(401).json({ status: 'error', message: 'Unauthorized' });
+        return;
+      }
+
+      const scope = req.query.conversationScope as string | undefined;
+      if (scope && scope !== identity.type) {
+        res.status(403).json({
+          status: 'error',
+          code: 'SCOPE_MISMATCH',
+          message: 'You are not authorized for this conversation scope.',
+        });
+        return;
+      }
+
+      const messages = await this.chatService.getHistory(identity);
+      res.status(200).json({ status: 'success', data: { messages } });
+    } catch (err) {
+      this.handleError(err, res, 'history');
     }
   };
 

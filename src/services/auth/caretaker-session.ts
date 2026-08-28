@@ -34,7 +34,7 @@
  * verifyOtp) works once the user already has an email set.
  */
 
-import { supabaseAdmin } from '@config/supabase';
+import { supabaseAdmin, createEphemeralAuthClient } from '@config/supabase';
 import { AppError } from '@middleware/error.middleware';
 import { logger } from '@utils/logger';
 
@@ -77,10 +77,10 @@ export async function mintCaretakerSession(userId: string): Promise<CaretakerSes
     throw new AppError('Could not start caretaker session. Please try again.', 500);
   }
 
-  // Supabase rejects `email` alongside `token_hash` here ("Only the
-  // token_hash and type should be provided") — token_hash alone already
-  // identifies the user for this exchange.
-  const { data: verified, error: verifyError } = await supabaseAdmin.auth.verifyOtp({
+  // Use an ephemeral auth client to redeem the token so the user session
+  // never mutates or pollutes the singleton `supabaseAdmin` service role client.
+  const ephemeralAuth = createEphemeralAuthClient();
+  const { data: verified, error: verifyError } = await ephemeralAuth.auth.verifyOtp({
     type: 'magiclink',
     token_hash: hashedToken,
   });

@@ -30,10 +30,11 @@ export class PatientAuthController {
   login = async (req: Request, res: Response): Promise<void> => {
     try {
       const { email } = req.body || {};
-      await this.patientAuthService.login(email);
+      const result = await this.patientAuthService.login(email);
       res.status(200).json({
         status: 'success',
-        message: 'If an account exists for this email, a login code has been sent.',
+        message: result.message,
+        ...(result.devOtp && { devOtp: result.devOtp }),
       });
     } catch (err) {
       this.handleError(err, res, 'login');

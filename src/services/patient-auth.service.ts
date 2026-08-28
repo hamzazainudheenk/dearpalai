@@ -10,12 +10,14 @@
  * configuration.
  */
 
-import { supabaseAdmin } from '@config/supabase';
+import { supabaseAdmin, createEphemeralAuthClient } from '@config/supabase';
 import { AppError } from '@middleware/error.middleware';
 import { logger } from '@utils/logger';
 import { generatePublicDearPalId, generateCaretakerCode } from '@utils/codes';
 import { hashCaretakerCode, encryptCaretakerCode, decryptCaretakerCode } from '@utils/crypto';
 import { isValidEmail, isValidMobile, normalizeMobile } from '@utils/account-validators';
+import { OtpService } from './otp/otp.service';
+import { createOtpProvider } from './otp/otp-provider';
 
 const CARETAKER_CODE_TTL_DAYS = 30;
 const DEARPAL_ID_MAX_ATTEMPTS = 5;
@@ -47,6 +49,12 @@ export interface SignupInput {
 }
 
 export class PatientAuthService {
+  private readonly otpService: OtpService;
+
+  constructor(otpService?: OtpService) {
+    this.otpService = otpService ?? new OtpService(createOtpProvider());
+  }
+
   /**
    * Creates the patient's Supabase Auth identity + `patients` row, and
    * returns the caretaker code in plaintext exactly once. Nothing after
@@ -88,10 +96,10 @@ export class PatientAuthService {
     //    passwordless email OTP (see `login`/`verifyLogin` below).
     const { data: created, error: createUserError } = await supabaseAdmin.auth.admin.createUser({
       email,
-      email_confirm: true,
       phone: mobile,
+      email_confirm: true,
       phone_confirm: true,
-      user_metadata: { full_name: fullName, role: 'patient' },
+      user_metadata: { role: 'patient' },
     });
 
     if (createUserError || !created?.user) {
@@ -182,68 +190,146 @@ export class PatientAuthService {
     };
   }
 
-  /** Starts passwordless login: Supabase sends a 6-digit email OTP using
-   *  its own built-in email delivery. */
-  async login(email: string): Promise<void> {
-    const normalizedEmail = (email || '').trim().toLowerCase();
-    if (!isValidEmail(normalizedEmail)) {
-      throw new AppError('Enter a valid email address.', 400, true, 'VALIDATION_ERROR');
+  /**
+   * Starts passwordless login: sends a 6-digit OTP via WhatsApp to the
+   * patient's registered phone, and also sends via Supabase email OTP.
+   */
+  async login(emailOrMobile: string): Promise<{ message: string; devOtp?: string }> {
+    const normalized = (emailOrMobile || '').trim().toLowerCase();
+    if (!normalized) {
+      throw new AppError('Enter a valid email address or mobile number.', 400, true, 'VALIDATION_ERROR');
     }
 
-    const { error } = await supabaseAdmin.auth.signInWithOtp({
-      email: normalizedEmail,
-      options: { shouldCreateUser: false },
-    });
+    const { data: patient } = await supabaseAdmin
+      .from('patients')
+      .select('id, auth_user_id, email, phone_number')
+      .or(`email.eq.${normalized},phone_number.eq.${normalized}`)
+      .maybeSingle();
 
-    if (error) {
-      logger.warn('Patient login OTP request failed', {
-        error: error.message || error.name || JSON.stringify(error),
-      });
+    let devOtp: string | undefined;
 
-      if ((error as any).status === 429 || (error as any).code === 'over_email_send_rate_limit') {
-        throw new AppError(
-          'For security, please wait 60 seconds before requesting another verification code.',
-          429,
-          true,
-          'RATE_LIMITED',
-        );
+    if (patient?.phone_number) {
+      try {
+        const otpRes = await this.otpService.sendOtp(patient.phone_number, 'caretaker_login');
+        devOtp = otpRes.devOtp;
+      } catch (otpErr) {
+        logger.warn('Patient phone/WhatsApp OTP send failed', { error: (otpErr as Error).message });
       }
     }
-  }
 
-  /** Verifies the email OTP and returns a real Supabase session + the
-   *  caller's safe profile. */
-  async verifyLogin(
-    email: string,
-    token: string,
-  ): Promise<{ accessToken: string; refreshToken: string; patient: SafePatientProfile }> {
-    const normalizedEmail = (email || '').trim().toLowerCase();
-    const cleanToken = (token || '').trim();
-
-    const { data, error } = await supabaseAdmin.auth.verifyOtp({
-      email: normalizedEmail,
-      token: cleanToken,
-      type: 'email',
-    });
-
-    if (error || !data.session || !data.user) {
-      logger.warn('Patient OTP verification failed', {
-        email: normalizedEmail,
-        tokenLength: cleanToken.length,
-        error: error?.message || 'No session returned',
-      });
-      throw new AppError('The code is invalid or has expired.', 400, true, 'INVALID_OTP');
-    }
-
-    const patient = await this.getProfileByAuthUserId(data.user.id);
-    if (!patient) {
-      throw new AppError('No patient account found for this login.', 404, true, 'NOT_FOUND');
+    // Also trigger email OTP in background (best-effort)
+    const emailTarget = patient?.email || (isValidEmail(normalized) ? normalized : null);
+    if (emailTarget) {
+      createEphemeralAuthClient()
+        .auth
+        .signInWithOtp({
+          email: emailTarget,
+          options: { shouldCreateUser: false },
+        })
+        .catch((err) => {
+          logger.warn('Supabase email OTP trigger ignored error', { error: err?.message });
+        });
     }
 
     return {
-      accessToken: data.session.access_token,
-      refreshToken: data.session.refresh_token,
-      patient,
+      message: 'If an account exists, a verification code has been sent.',
+      devOtp,
+    };
+  }
+
+  /**
+   * Verifies the OTP (via WhatsApp OTP or Supabase email OTP) and returns
+   * a genuine Supabase session + safe patient profile.
+   */
+  async verifyLogin(
+    emailOrMobile: string,
+    token: string,
+  ): Promise<{ accessToken: string; refreshToken: string; patient: SafePatientProfile }> {
+    const normalized = (emailOrMobile || '').trim().toLowerCase();
+    const cleanToken = (token || '').trim();
+
+    const { data: patient } = await supabaseAdmin
+      .from('patients')
+      .select('id, auth_user_id, email, phone_number, full_name, clinic_name, status, public_dearpal_id')
+      .or(`email.eq.${normalized},phone_number.eq.${normalized}`)
+      .maybeSingle();
+
+    if (!patient || !patient.auth_user_id) {
+      throw new AppError('The code is invalid or has expired.', 400, true, 'INVALID_OTP');
+    }
+
+    let verified = false;
+
+    // 1. Try verify via OtpService (WhatsApp/phone OTP)
+    if (patient.phone_number) {
+      try {
+        await this.otpService.verifyOtp(patient.phone_number, cleanToken, 'caretaker_login');
+        verified = true;
+      } catch (_) {}
+    }
+
+    // 2. Try verify via Supabase Email OTP if not verified yet
+    if (!verified && patient.email) {
+      try {
+        const emailAuthClient = createEphemeralAuthClient();
+        const { data: emailAuth, error: emailErr } = await emailAuthClient.auth.verifyOtp({
+          email: patient.email,
+          token: cleanToken,
+          type: 'email',
+        });
+        if (!emailErr && emailAuth.session) {
+          return {
+            accessToken: emailAuth.session.access_token,
+            refreshToken: emailAuth.session.refresh_token,
+            patient: {
+              dearPalId: patient.public_dearpal_id,
+              fullName: patient.full_name,
+              mobile: patient.phone_number,
+              email: patient.email,
+              clinic: patient.clinic_name,
+              status: patient.status,
+            },
+          };
+        }
+      } catch (_) {}
+    }
+
+    if (!verified) {
+      throw new AppError('The code is invalid or has expired.', 400, true, 'INVALID_OTP');
+    }
+
+    // 3. Mint genuine session for patient
+    const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
+      type: 'magiclink',
+      email: patient.email,
+    });
+    if (linkError || !linkData?.properties?.hashed_token) {
+      logger.error('Failed to generate patient session link', { error: linkError?.message });
+      throw new AppError('Could not sign in. Please try again.', 500);
+    }
+
+    const sessionAuthClient = createEphemeralAuthClient();
+    const { data: sessionData, error: sessionError } = await sessionAuthClient.auth.verifyOtp({
+      type: 'magiclink',
+      token_hash: linkData.properties.hashed_token,
+    });
+
+    if (sessionError || !sessionData?.session) {
+      logger.error('Failed to establish patient session', { error: sessionError?.message });
+      throw new AppError('Could not sign in. Please try again.', 500);
+    }
+
+    return {
+      accessToken: sessionData.session.access_token,
+      refreshToken: sessionData.session.refresh_token,
+      patient: {
+        dearPalId: patient.public_dearpal_id,
+        fullName: patient.full_name,
+        mobile: patient.phone_number,
+        email: patient.email,
+        clinic: patient.clinic_name,
+        status: patient.status,
+      },
     };
   }
 
