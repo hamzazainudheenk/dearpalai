@@ -14,6 +14,10 @@ import adminKnowledgeRoutes from './admin-knowledge.routes';
 import patientAuthRoutes from './patient-auth.routes';
 import caretakerAuthRoutes from './caretaker-auth.routes';
 import chatRoutes from './chat.routes';
+import referralRoutes from './referral.routes';
+import pswRoutes from './psw.routes';
+import adminRoutes from './admin.routes';
+import communicationRoutes from './communication.routes';
 
 const router = Router();
 
@@ -39,8 +43,16 @@ router.use('/api/patients/:id/sessions', sessionRoutes);
 router.use('/api/patients/:id/conversations', conversationRoutes);
 router.use('/api/dashboard', dashboardRoutes);
 
-/** Mount Admin Knowledge Base API routes */
+/** Mount Doctor -> PSW Referral and PSW Workspace routes */
+router.use('/api/referrals', referralRoutes);
+router.use('/api/psw', pswRoutes);
+
+/** Mount Professional Communication routes (Phase 3D) */
+router.use('/api/communications', communicationRoutes);
+
+/** Mount Admin Portal & Knowledge Base API routes */
 router.use('/api/admin/knowledge', adminKnowledgeRoutes);
+router.use('/api/admin', adminRoutes);
 
 /** Mount Patient and Caretaker account routes (Phase 1 — DearPal Care) */
 router.use('/api/patient', patientAuthRoutes);
